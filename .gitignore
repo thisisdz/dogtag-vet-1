@@ -5,6 +5,7 @@ protocol/**/node_modules/
 
 # next.js
 .next/
+.next-prod/
 out/
 next-env.d.ts
 

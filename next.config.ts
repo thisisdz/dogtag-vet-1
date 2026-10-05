@@ -2,7 +2,12 @@ import type {NextConfig} from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // NEXT_STANDALONE=0 skips the standalone output for a plain `next build && next start` (e.g. on
+  // Windows without symlink rights, where the standalone copy step fails with EPERM - `next start`
+  // never reads it). NEXT_DIST_DIR lets such a build go to its own folder while `next dev` keeps
+  // serving from `.next`. Both default to the Docker behaviour.
+  output: process.env.NEXT_STANDALONE === "0" ? undefined : "standalone",
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   // The vendored protocol/packages/dogtag-standard-ts workspace package ships its own
   // pnpm-lock.yaml, which would otherwise make Next.js guess at the monorepo root. Pin it
