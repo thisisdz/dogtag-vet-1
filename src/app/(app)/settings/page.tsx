@@ -96,7 +96,7 @@ export default async function SettingsPage() {
           </Banner>
         </div>
       )}
-      <SettingsForm initial={settings} />
+      <SettingsForm initial={settings} isOwner={isOwner} />
       <div className="mt-6 max-w-2xl space-y-6">
         <StaffSection initial={staff} isOwner={isOwner} currentStaffId={session?.user?.staffId} />
         {/* WP4.13 item 3 - deliberately its OWN conditional, not folded into the MyWalletSection

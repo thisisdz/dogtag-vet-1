@@ -1,24 +1,25 @@
 import {NextResponse} from "next/server";
-import {auth} from "@/auth";
 import {connectToDatabase} from "@/lib/db";
 import {getClinicSettings, updateClinicSettings} from "@/lib/models/ClinicSettings";
 import {clinicSettingsInputSchema} from "@/lib/schemas/settings";
+import {requireOwnerSession, requireStaffSession} from "@/lib/staffApi";
 
+/** Readable by every staff member - TagIssueWizard and the secondary-owner actions read the clone
+ * address from here. */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({error: {code: "unauthorized", message: "Sign in required."}}, {status: 401});
-  }
+  const {response} = await requireStaffSession();
+  if (response) return response;
   await connectToDatabase();
   const settings = await getClinicSettings();
   return NextResponse.json(settings);
 }
 
+/** Owner-only: these settings include where crypto payments are sent (`receivingAddresses`), the
+ * clinic's chain identity, RPC overrides, and the issuer name/domain signed into every tag
+ * attestation - none of which a `staff` or `vet` account may change. */
 export async function PATCH(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({error: {code: "unauthorized", message: "Sign in required."}}, {status: 401});
-  }
+  const {response} = await requireOwnerSession();
+  if (response) return response;
 
   const body = await request.json().catch(() => null);
   const parsed = clinicSettingsInputSchema.safeParse(body);

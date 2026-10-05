@@ -59,7 +59,7 @@ function paymentChainLabel(chainKey: PaymentChainKey): string {
   return paymentChainByKey[chainKey].testnet ? `${name} (testnet)` : name;
 }
 
-export function SettingsForm({initial}: {initial: ClinicSettingsDoc}) {
+export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; isOwner: boolean}) {
   const snackbar = useSnackbar();
   const [businessName, setBusinessName] = useState(initial.businessProfile?.name ?? "");
   const [logoUrl, setLogoUrl] = useState(initial.businessProfile?.logoUrl ?? "");
@@ -159,7 +159,9 @@ export function SettingsForm({initial}: {initial: ClinicSettingsDoc}) {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    // PATCH /api/settings is owner-only; a disabled fieldset locks every input and the Save button
+    // for everyone else, who can still read the current values.
+    <fieldset disabled={!isOwner} className="max-w-2xl space-y-6">
       <FormSection title="Business profile" helperText="Shown on invoices and the clinic's public entity card.">
         <FormField label="Clinic name" htmlFor="business-name" error={fieldErrors["businessProfile.name"]}>
           <Input
@@ -346,11 +348,12 @@ export function SettingsForm({initial}: {initial: ClinicSettingsDoc}) {
         ))}
       </FormSection>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        {!isOwner && <p className="text-caption text-ink-faint">Only an owner can change clinic settings.</p>}
         <Button onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save settings"}
         </Button>
       </div>
-    </div>
+    </fieldset>
   );
 }

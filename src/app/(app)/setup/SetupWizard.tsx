@@ -92,7 +92,12 @@ export function SetupWizard() {
           operatorWallet: address,
         }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        // Surface the server's reason (e.g. the owner-only 403) instead of a generic retry prompt.
+        const body = (await res.json().catch(() => null)) as {error?: {message?: string}} | null;
+        snackbar.show(body?.error?.message ?? "Could not save setup - try again", "danger");
+        return;
+      }
       snackbar.show("Setup saved", "ok");
     } catch {
       snackbar.show("Could not save setup - try again", "danger");
