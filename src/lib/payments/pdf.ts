@@ -18,18 +18,18 @@ import {paymentChainByKey, paymentChainDisplayName} from "@/lib/chains";
 const PAGE = {left: 50, right: 562, width: 512};
 
 /**
- * Print-medium colors mirroring design-system.md's light-theme token values. PDFKit has no CSS
- * variable concept to draw from, so this is the one place in the repo a hex literal is correct
- * outside `globals.css` - the values themselves are still sourced from that same token table, not
- * invented independently, and this comment is the paper trail for why this file is exempt from
- * the "no hardcoded hex outside the token file" rule.
+ * Print-medium colors mirroring the liquid-glass token values in `globals.css` (docs/BRAND.md).
+ * PDFKit has no CSS variable concept to draw from, so this is one of the two places in the repo a
+ * hex literal is correct outside `globals.css` (QrSurface.tsx is the other) - the values are still
+ * sourced from that token table, not invented independently. `border` is the opaque equivalent of
+ * the translucent `--border` on white paper (PDFKit takes no alpha in a color string).
  */
 const PDF_COLOR = {
-  ink: "#16202B",
-  inkMuted: "#5B6773",
-  border: "#D8DEE5",
-  brand: "#0E6E63",
-  ok: "#1F7A44",
+  ink: "#1E1A19",
+  inkMuted: "#625855",
+  border: "#E2DAD7",
+  brand: "#CE372D",
+  ok: "#2B7A4B",
 };
 
 /** Square footprint of the clinic logo in the header, when one loads - small enough to sit beside

@@ -1,4 +1,5 @@
 import type {ReactNode} from "react";
+import {AlertIcon} from "@/components/ui/icons";
 
 export interface FormSectionProps {
   title: string;
@@ -10,7 +11,7 @@ export interface FormSectionProps {
  * inside a form; pair with FormField below for inline validation under each input. */
 export function FormSection({title, helperText, children}: FormSectionProps) {
   return (
-    <section className="rounded-card border border-border bg-surface p-5 shadow-card">
+    <section className="glass rounded-card p-5">
       <div className="mb-4">
         <h3 className="text-section-title text-ink">{title}</h3>
         {helperText && <p className="mt-1 text-body text-ink-muted">{helperText}</p>}
@@ -44,7 +45,10 @@ export function FormField({label, htmlFor, error, helperText, children, classNam
       </label>
       {children}
       {error ? (
-        <p className="mt-1 text-caption text-danger">{error}</p>
+        <p className="mt-1 flex items-center gap-1 text-caption text-danger">
+          <AlertIcon size={12} className="shrink-0" />
+          {error}
+        </p>
       ) : helperText ? (
         <p className="mt-1 text-caption text-ink-muted">{helperText}</p>
       ) : null}
@@ -56,7 +60,7 @@ export function FormField({label, htmlFor, error, helperText, children, classNam
  * submit button with this at the page level (not inside FormSection, which can repeat). */
 export function FormActionBar({children}: {children: ReactNode}) {
   return (
-    <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end border-t border-border bg-surface/95 px-6 py-4 backdrop-blur">
+    <div className="glass sticky bottom-0 -mx-6 mt-6 flex justify-end border-x-0 border-b-0 px-6 py-4">
       {children}
     </div>
   );

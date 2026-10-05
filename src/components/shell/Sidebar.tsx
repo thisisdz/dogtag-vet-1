@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {usePathname} from "next/navigation";
+import {BrandLockup} from "@/components/brand/BrandLockup";
 import {navGroups} from "@/components/shell/nav";
 import type {StaffRole} from "@/lib/models/Staff";
 import {isVetOrOwner} from "@/lib/staffRoleTone";
@@ -46,9 +47,9 @@ export function Sidebar({role}: {role?: StaffRole}) {
   const groups = visibleGroups(role);
 
   return (
-    <nav className="flex h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-surface px-3 py-5">
-      <Link href="/dashboard" className="px-2 text-emphasized font-semibold text-ink">
-        dogtag<span className="text-brand">-vet</span>
+    <nav className="glass flex h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-y-0 border-l-0 px-3 py-5">
+      <Link href="/dashboard" className="px-2" aria-label="DogTag Vet - dashboard">
+        <BrandLockup height={26} />
       </Link>
       {groups.map((group) => (
         <div key={group.label}>
@@ -62,10 +63,9 @@ export function Sidebar({role}: {role?: StaffRole}) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`block rounded-control px-2 py-1.5 text-body transition-colors ${
-                      active
-                        ? "bg-brand-soft font-medium text-brand"
-                        : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+                    aria-current={active ? "page" : undefined}
+                    className={`block rounded-control px-2.5 py-1.5 text-body transition-colors ${
+                      active ? "glass-action font-medium" : "text-ink-muted hover:bg-brand-soft hover:text-ink"
                     }`}
                   >
                     {item.label}

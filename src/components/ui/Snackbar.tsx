@@ -2,6 +2,7 @@
 
 import {createContext, useCallback, useContext, useMemo, useState} from "react";
 import type {ReactNode} from "react";
+import {AlertIcon} from "@/components/ui/icons";
 
 export type SnackbarTone = "ok" | "danger" | "info";
 
@@ -18,9 +19,9 @@ interface SnackbarContextValue {
 const SnackbarContext = createContext<SnackbarContextValue | null>(null);
 
 const toneClasses: Record<SnackbarTone, string> = {
-  ok: "bg-ok text-white",
-  danger: "bg-danger text-white",
-  info: "bg-info text-white",
+  ok: "bg-ok text-on-brand",
+  danger: "bg-danger text-on-brand",
+  info: "bg-info text-on-brand",
 };
 
 /** Transient-result surface (design-system.md's Snackbar): "payment marked paid", "tag revoked",
@@ -47,8 +48,9 @@ export function SnackbarProvider({children}: {children: ReactNode}) {
           <div
             key={m.id}
             role="status"
-            className={`pointer-events-auto rounded-control px-4 py-2.5 text-body shadow-raised ${toneClasses[m.tone]}`}
+            className={`pointer-events-auto flex items-center gap-2 rounded-control px-4 py-2.5 text-body shadow-raised ${toneClasses[m.tone]}`}
           >
+            {m.tone === "danger" && <AlertIcon className="shrink-0" />}
             {m.text}
           </div>
         ))}

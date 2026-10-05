@@ -22,7 +22,7 @@ import {reasonCodeLabel} from "@/lib/reasonCodes";
 
 function StatTile({label, value, hint, href}: {label: string; value: string; hint?: string; href?: string}) {
   const content = (
-    <div className="h-full rounded-card border border-border bg-surface p-5 shadow-card transition-colors hover:bg-surface-2">
+    <div className="h-full glass rounded-card p-5 transition-colors hover:bg-surface-2">
       <p className="text-caption uppercase tracking-wide text-ink-muted">{label}</p>
       <p className="mt-1 text-hero text-ink">{value}</p>
       {hint && <p className="mt-1 text-caption text-ink-faint">{hint}</p>}

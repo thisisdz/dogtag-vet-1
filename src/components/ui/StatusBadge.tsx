@@ -1,3 +1,5 @@
+import {AlertIcon} from "@/components/ui/icons";
+
 export type StatusTone = "ok" | "warn" | "danger" | "info" | "neutral";
 
 const toneClasses: Record<StatusTone, string> = {
@@ -29,7 +31,11 @@ export function StatusBadge({tone, label}: StatusBadgeProps) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-badge px-2.5 py-1 text-caption font-medium ${toneClasses[tone]}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${dotClasses[tone]}`} aria-hidden />
+      {tone === "danger" ? (
+        <AlertIcon size={12} className="shrink-0" />
+      ) : (
+        <span className={`h-1.5 w-1.5 rounded-full ${dotClasses[tone]}`} aria-hidden />
+      )}
       {label}
     </span>
   );

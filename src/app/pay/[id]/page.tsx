@@ -48,7 +48,7 @@ export default async function PublicPaymentPage({
         <StatusBadge tone={paymentStatusTone[payment.status]} label={paymentStatusLabel[payment.status]} />
       </header>
 
-      <div className="rounded-card border border-border bg-surface p-5 shadow-card">
+      <div className="glass rounded-card p-5">
         <p className="text-hero text-ink">
           {payment.total} <span className="text-body text-ink-muted">{payment.currency}</span>
         </p>
@@ -58,7 +58,7 @@ export default async function PublicPaymentPage({
       </div>
 
       {paid && (
-        <div className="rounded-card border border-ok/30 bg-ok-soft p-5">
+        <div className="rounded-card border border-border bg-ok-soft p-5">
           <p className="text-emphasized font-semibold text-ok">Paid</p>
           {payment.paidWith && (
             <div className="mt-2 text-body text-ink">

@@ -15,7 +15,8 @@ export default async function AppLayout({children}: {children: ReactNode}) {
   }
 
   return (
-    <div className="flex h-dvh bg-bg">
+    // No background here: <body> paints the porcelain ground and brand glow the glass shell refracts.
+    <div className="flex h-dvh">
       <Sidebar role={session.user.role} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar email={session.user.email} role={session.user.role ?? "staff"} />

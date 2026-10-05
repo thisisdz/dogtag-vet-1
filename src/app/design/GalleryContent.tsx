@@ -12,8 +12,20 @@ import {useSnackbar} from "@/components/ui/Snackbar";
 import {FormField, FormSection} from "@/components/ui/FormSection";
 import {Button, Input, Select} from "@/components/ui/controls";
 import {QrSurface} from "@/components/ui/QrSurface";
+import {BrandLockup, BrandMark} from "@/components/brand/BrandLockup";
 
 const tones: StatusTone[] = ["ok", "warn", "danger", "info", "neutral"];
+
+/** The brand kit palette (docs/BRAND.md); hex labels are documentation only - the swatch colors
+ * come from the tokens. */
+const swatches = [
+  {name: "Tag Red", hex: "#CE372D", className: "bg-brand"},
+  {name: "Coral", hex: "#E4584C", className: "bg-coral"},
+  {name: "Ember", hex: "#A4241C", className: "bg-danger"},
+  {name: "Blush Frost", hex: "#F8E9E6", className: "bg-brand-soft"},
+  {name: "Porcelain", hex: "#F2EEEC", className: "bg-bg"},
+  {name: "Ink", hex: "#1E1A19", className: "bg-ink"},
+];
 
 interface DemoRow {
   id: string;
@@ -45,7 +57,48 @@ export function GalleryContent() {
   const [selectValue, setSelectValue] = useState("owner");
 
   return (
-    <div className="space-y-8 bg-bg p-6 text-ink">
+    <div className="space-y-8 text-ink">
+      <section>
+        <h2 className="mb-3 text-section-title">Brand</h2>
+        <div className="glass space-y-6 rounded-card p-6">
+          <div className="flex flex-wrap items-center gap-6">
+            <BrandLockup height={40} />
+            <BrandMark size={56} />
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+            {swatches.map((s) => (
+              <div key={s.name} className="text-caption">
+                <div className={`mb-1.5 h-12 rounded-control border border-border ${s.className}`} />
+                <p className="font-medium text-ink">{s.name}</p>
+                <p className="font-mono text-ink-muted">{s.hex}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="glass rounded-card p-4">
+              <p className="text-caption font-medium uppercase tracking-wide text-ink-faint">01 Frost plate</p>
+              <p className="mt-1 text-body">Surfaces: cards, inputs, nav.</p>
+            </div>
+            <div className="glass-action rounded-card p-4">
+              <p className="text-caption font-medium uppercase tracking-wide">02 Tag Red D</p>
+              <p className="mt-1 text-body">Action: buttons, toggles, active tabs.</p>
+            </div>
+            <div className="glass-action rounded-card p-4">
+              <span className="glass-chip inline-block rounded-badge px-2.5 py-0.5 text-caption font-medium">03 Bone glyph</span>
+              <p className="mt-1 text-body">Detail: white glass on red.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button>Primary</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="danger">Delete</Button>
+            <Button variant="ghost">Ghost</Button>
+            <Button disabled>Disabled</Button>
+            <Button size="sm">Small</Button>
+          </div>
+        </div>
+      </section>
+
       <section>
         <h2 className="mb-3 text-section-title">Status badges</h2>
         <div className="flex flex-wrap gap-2">

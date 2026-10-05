@@ -1,7 +1,6 @@
 "use client";
 
 import {signOut} from "next-auth/react";
-import {ThemeToggle} from "@/components/ui/ThemeToggle";
 import {Button} from "@/components/ui/controls";
 import {StatusBadge} from "@/components/ui/StatusBadge";
 import {staffRoleLabel, staffRoleTone} from "@/lib/staffRoleTone";
@@ -14,10 +13,9 @@ export interface TopbarProps {
 
 export function Topbar({email, role}: TopbarProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface px-6">
+    <header className="glass flex h-14 shrink-0 items-center justify-between border-x-0 border-t-0 px-6">
       <div />
       <div className="flex items-center gap-4">
-        <ThemeToggle />
         <div className="flex items-center gap-2">
           <span className="text-body text-ink">{email}</span>
           <StatusBadge tone={staffRoleTone[role]} label={staffRoleLabel[role]} />

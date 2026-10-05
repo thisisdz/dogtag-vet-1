@@ -54,7 +54,7 @@ export default async function BookingManagePage({
         <StatusBadge tone={appointmentStatusTone[appointment.status]} label={appointmentStatusLabel[appointment.status]} />
       </header>
 
-      <div className="rounded-card border border-border bg-surface p-5 shadow-card">
+      <div className="glass rounded-card p-5">
         <p className="text-caption uppercase tracking-wide text-ink-muted">When</p>
         <p className="mt-1 text-emphasized text-ink">{formatUnixSeconds(appointment.startAt, bookingSettings.timezone, true)}</p>
         {appointment.petName && (

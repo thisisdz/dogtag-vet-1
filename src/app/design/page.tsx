@@ -1,45 +1,26 @@
 import {notFound} from "next/navigation";
 import {GalleryContent} from "@/app/design/GalleryContent";
-import {ThemeToggle} from "@/components/ui/ThemeToggle";
 
 export const metadata = {
-  title: "Design gallery - dogtag-vet (dev)",
+  title: "Design gallery - DogTag Vet (dev)",
 };
 
-/** Dev-only component gallery: every shared UI primitive, rendered once in light and once in dark
- * (a `.light`/`.dark` wrapper div each, not `html.dark` - see globals.css) so both themes are
- * checkable side by side without toggling, regardless of which theme the page itself is in. The
- * `.light` wrapper matters even though light is `:root`'s default: viewed while `html` itself
- * carries `.dark` (the page's own ThemeToggle set to dark), an unwrapped column would inherit the
- * ancestor's dark tokens with nothing to override them back - `.light` restores them explicitly
- * (globals.css's `.light` block). Not reachable in a production build. */
+/** Dev-only component gallery: the liquid-glass brand layers and every shared UI primitive, on the
+ * single light theme (docs/BRAND.md). The visual sign-off sheet for brand changes. Not reachable in
+ * a production build. */
 export default function DesignGalleryPage() {
   if (process.env.NODE_ENV === "production") {
     notFound();
   }
 
   return (
-    <div className="min-h-dvh bg-bg p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-page-title text-ink">Design gallery</h1>
-          <p className="text-body text-ink-muted">Dev-only. Every shared component, both themes.</p>
-        </div>
-        <ThemeToggle />
+    <div className="min-h-dvh p-6">
+      <div className="mb-6">
+        <h1 className="text-page-title text-ink">Design gallery</h1>
+        <p className="text-body text-ink-muted">Dev-only. The brand kit and every shared component.</p>
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="light overflow-hidden rounded-card border border-border">
-          <p className="border-b border-border bg-surface-2 px-4 py-2 text-caption font-medium uppercase tracking-wide text-ink-muted">
-            Light
-          </p>
-          <GalleryContent />
-        </div>
-        <div className="dark overflow-hidden rounded-card border border-border">
-          <p className="border-b border-border bg-surface-2 px-4 py-2 text-caption font-medium uppercase tracking-wide text-ink-muted">
-            Dark
-          </p>
-          <GalleryContent />
-        </div>
+      <div className="mx-auto max-w-4xl">
+        <GalleryContent />
       </div>
     </div>
   );

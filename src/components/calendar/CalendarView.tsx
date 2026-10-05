@@ -349,18 +349,18 @@ export function CalendarView(props: CalendarViewProps) {
               <option value={UNASSIGNED_FILTER}>Unassigned</option>
             </Select>
           )}
-          <div className="inline-flex rounded-control border border-border">
+          <div className="glass inline-flex overflow-hidden rounded-control">
             <button
               type="button"
               onClick={() => navigate(anchorDate, "week")}
-              className={`px-3 py-1.5 text-body ${view === "week" ? "bg-brand text-white" : "text-ink hover:bg-surface-2"}`}
+              className={`px-3 py-1.5 text-body ${view === "week" ? "glass-action" : "text-ink hover:bg-brand-soft"}`}
             >
               Week
             </button>
             <button
               type="button"
               onClick={() => navigate(anchorDate, "day")}
-              className={`px-3 py-1.5 text-body ${view === "day" ? "bg-brand text-white" : "text-ink hover:bg-surface-2"}`}
+              className={`px-3 py-1.5 text-body ${view === "day" ? "glass-action" : "text-ink hover:bg-brand-soft"}`}
             >
               Day
             </button>

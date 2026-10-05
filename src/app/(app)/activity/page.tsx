@@ -15,7 +15,7 @@ import {toPlain} from "@/lib/toPlain";
 
 function StatTile({label, value, hint}: {label: string; value: string; hint?: string}) {
   return (
-    <div className="rounded-card border border-border bg-surface p-5 shadow-card">
+    <div className="glass rounded-card p-5">
       <p className="text-caption uppercase tracking-wide text-ink-muted">{label}</p>
       <p className="mt-1 text-hero text-ink">{value}</p>
       {hint && <p className="mt-1 text-caption text-ink-faint">{hint}</p>}

@@ -1,17 +1,23 @@
-import type {Metadata} from "next";
+import type {Metadata, Viewport} from "next";
 import type {ReactNode} from "react";
-import {Inter, JetBrains_Mono} from "next/font/google";
+import {Inter, JetBrains_Mono, Nunito} from "next/font/google";
 import {Providers} from "@/components/Providers";
 import {PublicConfigInitScript} from "@/components/PublicConfigInitScript";
-import {noFlashThemeScript} from "@/components/ui/ThemeToggle";
 import "@/app/globals.css";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-inter", display: "swap"});
+// Headings - the rounded face closest to the DogTag wordmark (docs/BRAND.md).
+const nunito = Nunito({subsets: ["latin"], variable: "--font-nunito", display: "swap", weight: ["600", "700", "800"]});
 const jetbrainsMono = JetBrains_Mono({subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap"});
 
 export const metadata: Metadata = {
-  title: "dogtag-vet",
-  description: "Self-deployable DogTag vet platform: clients, pets, tags, appointments, payments.",
+  title: "DogTag Vet",
+  description: "DogTag vet platform: clients, pets, tags, appointments, payments.",
+};
+
+export const viewport: Viewport = {
+  // Porcelain - matches --bg in globals.css (mobile browser chrome cannot read CSS variables).
+  themeColor: "#F2EEEC",
 };
 
 // PublicConfigInitScript (in <head> below) reads this server process's real env on every request
@@ -24,13 +30,11 @@ export const dynamic = "force-dynamic";
 
 export default function RootLayout({children}: {children: ReactNode}) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        {/* Runs synchronously, before paint, to avoid a theme flash. */}
-        <script dangerouslySetInnerHTML={{__html: noFlashThemeScript}} />
         <PublicConfigInitScript />
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable} font-sans`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

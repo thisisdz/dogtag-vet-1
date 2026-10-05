@@ -43,8 +43,8 @@ export function PublicConfigInitScript() {
   };
 
   return (
-    // See the root layout's own `noFlashThemeScript` for the same beforeInteractive-in-<head>
-    // reasoning (App Router root layout, not pages/_document.js).
+    // beforeInteractive from the App Router root layout's <head> (there is no pages/_document.js),
+    // so the config exists before any client module evaluates.
     // eslint-disable-next-line @next/next/no-before-interactive-script-outside-document
     <Script id="public-config-init" strategy="beforeInteractive">
       {`window.__DOGTAG_VET_PUBLIC_CONFIG__=${JSON.stringify(config).replace(/</g, "\\u003c")};`}

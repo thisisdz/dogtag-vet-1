@@ -6,7 +6,7 @@ Client and pet records, appointment scheduling, DogTag issuance and verification
 ## Stack
 
 - Next.js 15 App Router, TypeScript strict, standalone output.
-- Tailwind CSS with the shared DogTag design tokens (`src/app/globals.css`).
+- Tailwind CSS with the DogTag "liquid glass" brand tokens (`src/app/globals.css`; see `docs/BRAND.md`).
 - mongoose 8 against a single MongoDB deployment.
 - Auth.js v5 (Google, email magic link; a dev-only credentials sign-in behind `DEV_LOGIN=1`, never for production).
 - wagmi v2 + viem for every on-chain read and write; no server-held private keys anywhere.

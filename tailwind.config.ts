@@ -2,9 +2,9 @@ import type {Config} from "tailwindcss";
 
 // Tailwind utilities are thin wrappers around the CSS custom properties defined in
 // src/app/globals.css - that file is the single source of truth for every color value in this
-// repo. Nothing in this config (or anywhere else) hardcodes a hex color; see design-system.md.
+// repo. Nothing in this config (or anywhere else) hardcodes a hex color; see docs/BRAND.md.
+// Light only (the liquid-glass brand kit defines no dark theme), so there is no darkMode setting.
 const config: Config = {
-  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -23,8 +23,11 @@ const config: Config = {
         },
         brand: {
           DEFAULT: "var(--brand)",
+          hover: "var(--brand-hover)",
           soft: "var(--brand-soft)",
         },
+        coral: "var(--coral)",
+        "on-brand": "var(--on-brand)",
         link: "var(--link)",
         focus: "var(--focus)",
         ok: {DEFAULT: "var(--ok)", soft: "var(--ok-soft)"},
@@ -36,6 +39,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-nunito)", "var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
       },
       fontSize: {
@@ -48,13 +52,13 @@ const config: Config = {
         hero: ["32px", {lineHeight: "38px", fontWeight: "700"}],
       },
       borderRadius: {
-        control: "6px",
-        card: "10px",
+        control: "10px",
+        card: "16px",
         badge: "999px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(22,32,43,.06)",
-        raised: "0 4px 16px rgba(22,32,43,.06)",
+        card: "var(--glass-shadow)",
+        raised: "0 2px 4px rgba(30,26,25,.05), 0 16px 40px rgba(30,26,25,.12)",
       },
       spacing: {
         18: "4.5rem",

@@ -12,16 +12,16 @@ export interface QrSurfaceProps {
   size?: number;
 }
 
-/** QR surfaces always print on a white quiet zone, even in dark theme, and carry an expiry
- * countdown for one-time tokens - design-system.md. The quiet zone uses the fixed `--qr-paper`
- * token (white in both themes) rather than `--surface`, which flips dark in dark mode. */
+/** QR surfaces always print on a white quiet zone and carry an expiry countdown for one-time
+ * tokens - design-system.md. The quiet zone uses the fixed `--qr-paper` token. The QR encoder
+ * cannot read CSS, so its module color is the Ink token's hex (docs/BRAND.md). */
 export function QrSurface({data, caption, expiresAt, size = 220}: QrSurfaceProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(data, {margin: 2, width: size, color: {dark: "#16202B", light: "#FFFFFF"}})
+    QRCode.toDataURL(data, {margin: 2, width: size, color: {dark: "#1E1A19", light: "#FFFFFF"}})
       .then((url) => {
         if (!cancelled) setDataUrl(url);
       })

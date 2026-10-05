@@ -41,7 +41,7 @@ export function OwnersCard({
   const hasTag = Boolean(dogTagIdField);
 
   return (
-    <section className="rounded-card border border-border bg-surface p-5 shadow-card">
+    <section className="glass rounded-card p-5">
       <div className="mb-4 flex items-center justify-between gap-2">
         {/* NOT "Owners" - `PetForm.tsx`'s pre-existing "Owners" FormSection already owns that
             exact heading for the unrelated many-to-many CRM contacts list (`ownerClientIds`,

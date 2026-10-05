@@ -2,14 +2,15 @@
 
 import {useEffect, useState} from "react";
 import type {ReactNode} from "react";
+import {AlertIcon} from "@/components/ui/icons";
 
 export type BannerTone = "info" | "warn" | "danger" | "ok";
 
 const toneClasses: Record<BannerTone, string> = {
-  info: "bg-info-soft text-info border-info/30",
-  warn: "bg-warn-soft text-warn border-warn/30",
-  danger: "bg-danger-soft text-danger border-danger/30",
-  ok: "bg-ok-soft text-ok border-ok/30",
+  info: "bg-info-soft text-info border-border",
+  warn: "bg-warn-soft text-warn border-border",
+  danger: "bg-danger-soft text-danger border-border",
+  ok: "bg-ok-soft text-ok border-border",
 };
 
 export interface BannerProps {
@@ -54,6 +55,7 @@ export function Banner({tone, title, children, action, dismissKey}: BannerProps)
 
   return (
     <div className={`flex items-start gap-3 rounded-card border px-4 py-3 ${toneClasses[tone]}`} role="status">
+      {tone === "danger" && <AlertIcon size={18} className="mt-px shrink-0" />}
       <div className="flex-1">
         <p className="text-body font-medium">{title}</p>
         {children && <div className="mt-1 text-body opacity-90">{children}</div>}

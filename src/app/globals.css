@@ -3,135 +3,86 @@
 @tailwind utilities;
 
 /*
- * Design tokens (protocol/design/design-system.md). Every color used anywhere in this repo must
- * resolve to one of these custom properties - never a hardcoded hex value outside this file.
- * Light values are the default on :root; dark values override under .dark (class-strategy dark
- * mode, toggled by ThemeToggle - see src/components/ui/ThemeToggle.tsx).
+ * Design tokens - the DogTag "liquid glass" brand kit (docs/BRAND.md). Every color used anywhere in
+ * this repo must resolve to one of these custom properties - never a hardcoded hex value outside
+ * this file (src/lib/payments/pdf.ts and QrSurface.tsx are the documented exceptions: PDFKit and
+ * the QR encoder cannot read CSS). Light only: the brand kit defines no dark theme.
+ *
+ * The three layers of the mark map onto the interface:
+ *   01 Frost plate -> surfaces  (.glass: cards, nav, modals - frosted white over the porcelain ground)
+ *   02 Tag Red D   -> action    (.glass-action: primary buttons, toggles, active tabs, icon buttons)
+ *   03 Bone glyph  -> detail    (.glass-chip / --on-brand: white glass and labels sitting on red)
  */
 :root {
-  /* Neutrals and surfaces */
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #eef1f4;
-  --border: #d8dee5;
-  --border-strong: #b7c0cb;
-  --ink: #16202b;
-  --ink-muted: #5b6773;
-  --ink-faint: #8a95a1;
-
-  /* Brand and accents */
-  --brand: #0e6e63;
-  --brand-soft: #dcefec;
-  --link: #0b62a4;
-  --focus: rgba(11, 98, 164, 0.4);
-
-  /* Status palette */
-  --ok: #1f7a44;
-  --ok-soft: #dff0e6;
-  --warn: #9a6b00;
-  --warn-soft: #f7ecce;
-  --danger: #b42331;
-  --danger-soft: #f8dee0;
-  --info: #275fbf;
-  --info-soft: #dfe8f8;
-  --neutral-status: #5b6773;
-  --neutral-status-soft: #e7ebef;
-
-  /* QR surfaces are always printed on a white quiet zone, in both themes - this is a fixed
-     token, not a themed one, so it is declared once here and never overridden under .dark. */
-  --qr-paper: #ffffff;
-}
-
-/*
- * Explicit light-token block, mirroring `:root`'s defaults. Needed only so a `.light`-scoped
- * subtree can restore light tokens while nested under an ancestor `html.dark` (the design
- * gallery's side-by-side "Light" column, src/app/design/page.tsx - `:root`'s own defaults are not
- * enough there because `html.dark`'s `.dark` block below already overrode them higher up the
- * tree, and CSS custom properties resolve from the nearest declaration, not from `:root`
- * specifically). Kept byte-identical to `:root`'s light values rather than sharing a single block
- * with it, since `:root` must stay the actual default (unscoped pages have no `.light` wrapper to
- * rely on).
- */
-.light {
-  /* Native form-control chrome (scrollbars, `Input`/`Select` affordances) reads `color-scheme`,
-     which - like the custom properties below - inherits from the nearest ancestor declaration,
-     not from `html` specifically. `html { color-scheme: light }` alone leaves a `.light`-scoped
-     subtree nested under `html.dark` (the design gallery's Light column, viewed in dark theme)
-     rendering dark-chromed native controls despite every token around them reading light. */
   color-scheme: light;
-  --bg: #f6f7f9;
+
+  /* Neutrals and surfaces - Porcelain ground, Ink text */
+  --bg: #f2eeec;
   --surface: #ffffff;
-  --surface-2: #eef1f4;
-  --border: #d8dee5;
-  --border-strong: #b7c0cb;
-  --ink: #16202b;
-  --ink-muted: #5b6773;
-  --ink-faint: #8a95a1;
+  --surface-2: #f7f2f0;
+  --border: rgba(30, 26, 25, 0.1);
+  --border-strong: rgba(30, 26, 25, 0.22);
+  --ink: #1e1a19;
+  --ink-muted: #625855;
+  --ink-faint: #958a87;
 
-  --brand: #0e6e63;
-  --brand-soft: #dcefec;
-  --link: #0b62a4;
-  --focus: rgba(11, 98, 164, 0.4);
+  /* Brand - Tag Red for every action, active state and icon; Coral only in gradients/highlights
+     (white on Coral is ~3.6:1, below AA for text); Blush Frost for soft fills. */
+  --brand: #ce372d;
+  --brand-hover: #b92f26;
+  --brand-soft: #f8e9e6;
+  --coral: #e4584c;
+  --on-brand: #ffffff;
+  /* Red text on porcelain needs a darker red than Tag Red to stay comfortably above AA. */
+  --link: #a82d24;
+  --focus: rgba(206, 55, 45, 0.35);
 
-  --ok: #1f7a44;
-  --ok-soft: #dff0e6;
-  --warn: #9a6b00;
-  --warn-soft: #f7ecce;
-  --danger: #b42331;
-  --danger-soft: #f8dee0;
-  --info: #275fbf;
-  --info-soft: #dfe8f8;
-  --neutral-status: #5b6773;
-  --neutral-status-soft: #e7ebef;
-}
+  /* Status palette, warm-tuned to sit on porcelain. Danger is Ember - close to Tag Red, so a danger
+     surface must always carry an alert icon too (never color alone). */
+  --ok: #2b7a4b;
+  --ok-soft: #e2f0e6;
+  --warn: #9a6200;
+  --warn-soft: #f8ecd2;
+  --danger: #a4241c;
+  --danger-soft: #f6dad5;
+  --info: #2f5fb3;
+  --info-soft: #e2e9f6;
+  --neutral-status: #6e6360;
+  --neutral-status-soft: #ece6e3;
 
-.dark {
-  /* Redundant with `html.dark { color-scheme: dark }` below for the ordinary top-level case, but
-     needed here too for the same reason `.light` needs its own `color-scheme` above: a `.dark`-
-     scoped subtree nested under plain (light) `html` - the design gallery's Dark column - has no
-     `html.dark` ancestor to inherit it from. */
-  color-scheme: dark;
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface-2: #1f2630;
-  --border: #2c333d;
-  --border-strong: #414b58;
-  --ink: #e6ebf1;
-  --ink-muted: #93a0ae;
-  --ink-faint: #6b7683;
+  /* QR codes always print on a white quiet zone. */
+  --qr-paper: #ffffff;
 
-  --brand: #2fb3a4;
-  --brand-soft: #123a35;
-  --link: #58a6e8;
-  --focus: rgba(88, 166, 232, 0.4);
-
-  --ok: #4cc38a;
-  --ok-soft: #12271c;
-  --warn: #e2b93b;
-  --warn-soft: #2e2510;
-  --danger: #f07178;
-  --danger-soft: #331418;
-  --info: #7aa7f0;
-  --info-soft: #14213a;
-  --neutral-status: #93a0ae;
-  --neutral-status-soft: #232b34;
+  /* Glass */
+  --glass-surface: rgba(255, 255, 255, 0.64);
+  --glass-surface-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-blur: 18px;
+  --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 1px 2px rgba(30, 26, 25, 0.04), 0 8px 24px rgba(30, 26, 25, 0.06);
+  /* Soft brand light behind the glass, so it has something to refract. */
+  --glow-coral: rgba(228, 88, 76, 0.12);
+  --glow-red: rgba(206, 55, 45, 0.08);
 }
 
 * {
   border-color: var(--border);
 }
 
-html {
-  color-scheme: light;
-}
-
-html.dark {
-  color-scheme: dark;
-}
-
 body {
   background-color: var(--bg);
+  background-image:
+    radial-gradient(60rem 40rem at -10% -10%, var(--glow-coral), transparent 60%),
+    radial-gradient(50rem 36rem at 110% 110%, var(--glow-red), transparent 60%);
+  background-attachment: fixed;
   color: var(--ink);
+}
+
+/* Headings use the wordmark's rounded face; body copy stays on Inter. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-nunito), var(--font-inter), system-ui, sans-serif;
 }
 
 ::selection {
@@ -139,23 +90,44 @@ body {
   color: var(--ink);
 }
 
-/* Light theme uses soft shadows; dark theme relies on borders instead (design-system.md). */
-.dark .shadow-card,
-.dark .shadow-raised {
-  box-shadow: none;
+@layer components {
+  /* 01 Frost plate. Blur is reserved for the shell, cards, modals and the snackbar - dense tables
+     and form inputs stay solid for legibility and scroll performance. */
+  .glass {
+    background-color: var(--glass-surface);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-rim), var(--glass-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  }
+
+  /* 02 Tag Red D: red glass with a bright top rim. */
+  .glass-action {
+    background-image: linear-gradient(180deg, var(--coral) 0%, var(--brand) 55%, var(--brand-hover) 100%);
+    color: var(--on-brand);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+      0 2px 8px rgba(206, 55, 45, 0.28);
+  }
+  .glass-action:hover:not(:disabled) {
+    background-image: linear-gradient(180deg, var(--brand) 0%, var(--brand-hover) 100%);
+  }
+
+  /* 03 Bone glyph: white glass sitting on red (labels, icons, toggle knobs inside an action). */
+  .glass-chip {
+    background-color: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    color: var(--on-brand);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
 }
 
-/* Undoes the dark-theme shadow suppression above for a `.light`-scoped subtree nested under an
-   ancestor `.dark` (the design gallery's "Light" column, rendered while the page itself is in
-   dark theme - see the `.light` token block above). The extra `.light` class gives these two
-   rules higher specificity than the plain `.dark` pair above, so they win regardless of source
-   order; the values restored are the exact ones `shadow-card`/`shadow-raised` already carry as
-   Tailwind utility classes (tailwind.config.ts's own boxShadow.card/raised). */
-.dark .light .shadow-card {
-  box-shadow: 0 1px 2px rgba(22, 32, 43, 0.06);
-}
-.dark .light .shadow-raised {
-  box-shadow: 0 4px 16px rgba(22, 32, 43, 0.06);
+/* Browsers without backdrop-filter get a solid frost plate instead of see-through glass. */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .glass {
+    background-color: var(--glass-surface-strong);
+  }
 }
 
 /* Tabular numerals for every mono/amount surface (HashCell, AddressChip, DataTable numeric
