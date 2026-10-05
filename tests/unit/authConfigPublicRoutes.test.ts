@@ -62,6 +62,12 @@ describe("auth.config's public-route allowlist", () => {
     expect(isAuthorized("/api/tags/import-sessions")).toBe(false);
   });
 
+  it("allows the web health probe with no session, as an exact path only", () => {
+    expect(isAuthorized("/api/healthz")).toBe(true);
+    expect(isAuthorized("/api/healthz-admin")).toBe(false);
+    expect(isAuthorized("/api/healthz/details")).toBe(false);
+  });
+
   it("still allows the pre-existing public routes (regression guard against this edit breaking the array)", () => {
     expect(isAuthorized("/p/0123456789abcdef0123456789abcdef")).toBe(true);
     expect(isAuthorized("/x/0123456789abcdef0123456789abcdef")).toBe(true);

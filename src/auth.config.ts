@@ -47,7 +47,8 @@ export const authConfig = {
       ];
       // Exact-match public pages that must NOT also make a same-prefixed staff route public -
       // `startsWith` alone would make `/book` also cover a future `/bookkeeping` or similar.
-      const publicExactPaths = ["/", "/book"];
+      // `/api/healthz` is the web process's readiness probe for the host (no data beyond up/down).
+      const publicExactPaths = ["/", "/book", "/api/healthz"];
       const isPublic = publicExactPaths.includes(pathname) || publicPrefixes.some((p) => pathname.startsWith(p));
       if (isPublic) return true;
       return isLoggedIn;
