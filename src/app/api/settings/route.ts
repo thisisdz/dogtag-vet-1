@@ -23,8 +23,21 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = clinicSettingsInputSchema.safeParse(body);
   if (!parsed.success) {
+    // Keyed by the full dotted path (e.g. "businessProfile.domain") rather than zod's flatten(),
+    // which only keeps top-level keys and would report every profile error under "businessProfile".
+    const fieldErrors: Record<string, string[]> = {};
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join(".");
+      if (path) (fieldErrors[path] ??= []).push(issue.message);
+    }
     return NextResponse.json(
-      {error: {code: "invalid_input", message: "Malformed settings payload.", details: parsed.error.flatten()}},
+      {
+        error: {
+          code: "invalid_input",
+          message: parsed.error.issues[0]?.message ?? "Malformed settings payload.",
+          details: {formErrors: parsed.error.flatten().formErrors, fieldErrors},
+        },
+      },
       {status: 400},
     );
   }

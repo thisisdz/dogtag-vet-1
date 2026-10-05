@@ -6,6 +6,13 @@ export const receivingAddressSchema = z.object({
   address: hexAddress,
 });
 
+/** Reduces a pasted URL-ish issuer domain to the bare host the regex below expects: trims,
+ * lowercases, and strips a leading `scheme://` and any trailing slashes ("https://AcmeVet.com/" ->
+ * "acmevet.com"). Anything else (a path, a port) is left alone so the regex still rejects it. */
+export function normalizeIssuerDomain(value: string): string {
+  return value.trim().toLowerCase().replace(/^[a-z][a-z0-9+.-]*:\/\//, "").replace(/\/+$/, "");
+}
+
 export const clinicSettingsInputSchema = z.object({
   entityAccount: hexAddress.optional(),
   cloneAddress: hexAddress.optional(),
@@ -19,10 +26,10 @@ export const clinicSettingsInputSchema = z.object({
       // A bare DNS domain (host, not a URL) - `issuerDomain` in the C3 attestation message and
       // `IssuerMeta.domain` in every wrapped credential envelope (protocol/specs/issuer-attestation.md).
       domain: z
-        .string()
-        .trim()
-        .toLowerCase()
-        .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/, "Enter a bare domain, e.g. acmevet.com")
+        .preprocess(
+          (v) => (typeof v === "string" ? normalizeIssuerDomain(v) : v),
+          z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/, "Enter a bare domain, e.g. acmevet.com"),
+        )
         .optional(),
       phone: z.string().trim().optional(),
       primaryColor: z.string().trim().optional(),
