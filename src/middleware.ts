@@ -5,6 +5,8 @@ import {authConfig} from "@/auth.config";
 export const {auth: middleware} = NextAuth(authConfig);
 
 export const config = {
-  // Run on every route except static assets and Next internals.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Run on every route except static assets and Next internals. icon.png / apple-icon.png are the
+  // app icons Next serves from src/app (browser tab, iOS home screen); signed-out pages such as
+  // /sign-in must be able to load them.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)"],
 };
