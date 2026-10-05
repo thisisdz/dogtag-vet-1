@@ -31,6 +31,7 @@
  * probe this process - see that file's doc comment, and `src/lib/health/workerHealth.ts`'s, for
  * the readiness/liveness split and what each loop's "last poll" actually measures.
  */
+import mongoose from "mongoose";
 import {connectToDatabase} from "@/lib/db";
 import {getServerEnv} from "@/lib/env";
 import {getClinicSettings, updateClinicSettings} from "@/lib/models/ClinicSettings";
@@ -193,8 +194,8 @@ async function followOnce(): Promise<bigint> {
  * for different things (this clinic's clone events vs. matching payment transfers), keep separate
  * cursors (`ClinicSettings.activityCursorBlock` vs. `PaymentChainCursor`), and poll on different
  * cadences - a failure in one must never stall the other. */
-async function runPaymentWatcherLoop(pollMs: number, pollState: WorkerPollState): Promise<never> {
-  for (;;) {
+async function runPaymentWatcherLoop(pollMs: number, pollState: WorkerPollState): Promise<void> {
+  while (!shutdown.signal.aborted) {
     try {
       await runPaymentWatcherOnce();
     } catch (err) {
@@ -205,12 +206,12 @@ async function runPaymentWatcherLoop(pollMs: number, pollState: WorkerPollState)
     // `LivenessSnapshot.paymentWatcherLastPollAt` doc comment for why (this loop's early "nothing
     // pending" return makes a progress-based signal false-positive on an idle, healthy clinic).
     recordPaymentWatcherPoll(pollState);
-    await new Promise((resolve) => setTimeout(resolve, pollMs));
+    await sleepUnlessShuttingDown(pollMs);
   }
 }
 
-async function runActivityFollowerLoop(pollMs: number, pollState: WorkerPollState): Promise<never> {
-  for (;;) {
+async function runActivityFollowerLoop(pollMs: number, pollState: WorkerPollState): Promise<void> {
+  while (!shutdown.signal.aborted) {
     try {
       const observedTip = await followOnce();
       // Progress-based, deliberately - only iterations that actually observed a tip advance this.
@@ -227,11 +228,50 @@ async function runActivityFollowerLoop(pollMs: number, pollState: WorkerPollStat
     // never crash-loop the container over an external RPC it cannot fix by restarting - the exact
     // reasoning workerHealth.ts's module doc comment gives for keeping Mongo out of liveness too.
     recordActivityFollowerAttempt(pollState);
-    await new Promise((resolve) => setTimeout(resolve, pollMs));
+    await sleepUnlessShuttingDown(pollMs);
+  }
+}
+
+/** Aborted on SIGTERM/SIGINT (a container rollout or `docker stop`). Each loop finishes the
+ * iteration it is in - never interrupting a cursor write halfway - then skips its sleep and exits,
+ * so a replacement worker never overlaps this one's chain cursors for longer than one iteration. */
+const shutdown = new AbortController();
+/** Backstop for an iteration stuck on a hung RPC call: well inside Cloudflare Containers' 15-minute
+ * SIGTERM grace period, and close to Docker's 10s default plus slack. */
+const SHUTDOWN_TIMEOUT_MS = 25_000;
+
+function sleepUnlessShuttingDown(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (shutdown.signal.aborted) return resolve();
+    const timer = setTimeout(resolve, ms);
+    shutdown.signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      {once: true},
+    );
+  });
+}
+
+function handleShutdownSignals(): void {
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
+    process.once(signal, () => {
+      console.log(`[worker] ${signal} received - finishing current iterations, then exiting`);
+      shutdown.abort();
+      setTimeout(() => {
+        console.error(`[worker] shutdown did not finish within ${SHUTDOWN_TIMEOUT_MS}ms - exiting anyway`);
+        process.exit(1);
+      }, SHUTDOWN_TIMEOUT_MS).unref();
+    });
   }
 }
 
 async function main() {
+  // Registered before boot so a stop during boot recovery still skips straight past both loops.
+  handleShutdownSignals();
+
   // WP4.18 V1 - the payment path's own startup assertion (`ROAX_CHAIN_ID` must be a positive
   // integer): the payment watcher below never calls `tokenInfo()` itself (it reads `decimals`/
   // `tokenAddress` straight off each payment's already-built `crypto[]` rail, not the registry),
@@ -249,7 +289,7 @@ async function main() {
   const env = getServerEnv();
 
   const pollState = createInitialPollState();
-  startHealthServer(env.WORKER_HEALTH_PORT, pollState, env.WORKER_STALL_MINUTES);
+  const healthServer = startHealthServer(env.WORKER_HEALTH_PORT, pollState, env.WORKER_STALL_MINUTES);
   console.log(`[worker] health endpoint listening on :${env.WORKER_HEALTH_PORT} (/healthz, /livez)`);
 
   console.log(`[worker] starting chain-activity follower (poll every ${env.ACTIVITY_POLL_MS}ms)`);
@@ -258,6 +298,11 @@ async function main() {
     runActivityFollowerLoop(env.ACTIVITY_POLL_MS, pollState),
     runPaymentWatcherLoop(env.PAYMENT_WATCHER_POLL_MS, pollState),
   ]);
+
+  // Only reached after a shutdown signal - both loops have finished their last iteration.
+  healthServer.close();
+  await mongoose.disconnect();
+  console.log("[worker] stopped");
 }
 
 main().catch((err) => {
