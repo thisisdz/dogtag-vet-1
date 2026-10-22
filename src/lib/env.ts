@@ -150,6 +150,12 @@ const envSchema = z.object({
   // left "submitting" mid-flight (src/lib/delegation/bootRecovery.ts) - same rationale and default
   // as MINT_SESSION_STALE_MS above, measured from `submittingAt`.
   DELEGATION_SESSION_STALE_MS: z.coerce.number().default(5 * 60_000),
+
+  // DogTag manual verification track (docs/MANUAL-VERIFICATION-PLAN.md). How long an emailed claim
+  // link stays redeemable, and the total size of owner evidence documents kept in MongoDB (Atlas
+  // M0 holds 512 MB in total, so the default leaves room for everything else).
+  MANUAL_VERIFICATION_CLAIM_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  MANUAL_VERIFICATION_STORAGE_QUOTA_MB: z.coerce.number().positive().default(250),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

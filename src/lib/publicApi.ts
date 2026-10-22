@@ -60,9 +60,12 @@ export function enforceRateLimit(
  * body is rejected for being oversized (not for ordinary malformed JSON, which is normal client
  * error traffic rather than abuse). Fire-and-forget, same as `enforceRateLimit`'s own logging -
  * never adds latency or a new failure mode to the request itself.
+ *
+ * `maxBytes` defaults to bodyLimit.ts's small public default; only an upload route (the manual-
+ * verification document submit) passes a larger cap.
  */
-export async function readJsonBody(request: Request, route: string): Promise<ReadJsonBodyResult> {
-  const result = await readJsonBodyRaw(request);
+export async function readJsonBody(request: Request, route: string, maxBytes?: number): Promise<ReadJsonBodyResult> {
+  const result = await readJsonBodyRaw(request, maxBytes);
   if (!result.ok && result.tooLarge) {
     void recordAbuse(route, requestClientKey(request), "body_too_large");
   }
