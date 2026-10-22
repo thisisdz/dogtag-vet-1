@@ -5,6 +5,7 @@ import {Banner} from "@/components/ui/Banner";
 import {IssuanceWalletBalanceLine} from "@/components/wallet/IssuanceWalletBalanceLine";
 import {truncateMiddle} from "@/lib/format";
 import {decideVetWalletBanner, operatorStatusExplanation, type OperatorStatus} from "@/lib/staffRoleTone";
+import {useBrand} from "@/components/BrandProvider";
 
 /**
  * WP4.7C item 3(b) - shared between `/tags` and `/tags/issue` (both server components; each
@@ -25,6 +26,7 @@ import {decideVetWalletBanner, operatorStatusExplanation, type OperatorStatus} f
  * harness. This component is a thin wrapper feeding it `useAccount()`'s live values.
  */
 export function VetWalletStatusBanner({status, recordedAddress}: {status: OperatorStatus; recordedAddress?: string}) {
+  const {org} = useBrand();
   const {address: connectedAddress, isConnected} = useAccount();
   const decision = decideVetWalletBanner({status, recordedAddress, connectedAddress, isConnected});
 
@@ -33,7 +35,7 @@ export function VetWalletStatusBanner({status, recordedAddress}: {status: Operat
       {decision.show && (
         <div className="mb-6">
           <Banner tone="warn" title="Check your issuance access">
-            {decision.showStatusIssue && <p>{operatorStatusExplanation(status)}</p>}
+            {decision.showStatusIssue && <p>{operatorStatusExplanation(status, org)}</p>}
             {decision.showMismatch && (
               <p className={decision.showStatusIssue ? "mt-2" : undefined}>
                 Your connected wallet ({truncateMiddle(connectedAddress!)}) is different from your recorded address (

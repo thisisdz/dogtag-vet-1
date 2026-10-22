@@ -10,6 +10,7 @@ import {ImportTagAction} from "@/components/tags/ImportTagAction";
 import {dogTagStatusLabel, dogTagStatusTone} from "@/lib/tagStatusTone";
 import {formatUnixSeconds} from "@/lib/format";
 import type {DogTagInfo} from "@/lib/models/Pet";
+import {serverBrand} from "@/lib/brand.server";
 
 /**
  * Surfaces `Pet.dogTag` on the pet's own record - design-system.md principle 3 ("everything with
@@ -43,6 +44,7 @@ export function PetTagCard({
    * opaque hash, so this clinic genuinely does not know WHICH fields these were, only how many. */
   maskedFieldCount?: number;
 }) {
+  const {Org, org} = serverBrand();
   const hasTag = Boolean(dogTag.dogTagIdDec);
 
   if (!hasTag) {
@@ -84,14 +86,14 @@ export function PetTagCard({
       {dogTag.external && (
         <p className="mb-4 -mt-2 text-caption text-ink-faint">
           Imported (via a mobile booking&apos;s tag claim, or the tag-data import ceremony), verified on chain against another
-          clinic&apos;s issuance - this clinic did not issue it and cannot revoke, reactivate, or replace it here.
+          {org}&apos;s issuance - this {org} did not issue it and cannot revoke, reactivate, or replace it here.
         </p>
       )}
       {dogTag.importConflicts && dogTag.importConflicts.fields.length > 0 && (
         <Banner tone="warn" title="Data mismatch at import time">
           <p className="mb-2">
             When this tag was imported on {formatUnixSeconds(dogTag.importConflicts.detectedAt, timeZone)}, the following fields
-            disagreed with this pet&apos;s existing record. This clinic&apos;s own values were kept - nothing was overwritten.
+            disagreed with this pet&apos;s existing record. This {Org}&apos;s own values were kept - nothing was overwritten.
           </p>
           <ul className="list-inside list-disc space-y-1">
             {dogTag.importConflicts.fields.map((c) => (
@@ -107,7 +109,7 @@ export function PetTagCard({
         <Banner tone="info" title="Some fields are masked by the owner">
           <p>
             {maskedFieldCount} attribute{maskedFieldCount === 1 ? "" : "s"} on this tag {maskedFieldCount === 1 ? "was" : "were"} masked when
-            the owner shared it - this clinic holds each field&apos;s cryptographic hash only, never its value, and cannot disclose or
+            the owner shared it - this {org} holds each field&apos;s cryptographic hash only, never its value, and cannot disclose or
             export what it does not have. The root still verifies exactly as if nothing were masked.
           </p>
         </Banner>

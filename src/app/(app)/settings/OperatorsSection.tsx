@@ -7,6 +7,7 @@ import {StatusBadge} from "@/components/ui/StatusBadge";
 import {vetIssuerAbi} from "@/lib/abi";
 import {isVetOrOwner, operatorStatusBadge, practitionerDisplayName} from "@/lib/staffRoleTone";
 import type {StaffDoc} from "@/lib/models/Staff";
+import {useBrand} from "@/components/BrandProvider";
 
 /**
  * One vet/owner staff row that has recorded a wallet: a live, READ-ONLY `operators(address)` read
@@ -82,6 +83,7 @@ function OperatorRow({staff, cloneAddress}: {staff: StaffDoc; cloneAddress: `0x$
  * this WP.
  */
 export function OperatorsSection({staff, cloneAddress, isOwner}: {staff: StaffDoc[]; cloneAddress?: string; isOwner: boolean}) {
+  const {org} = useBrand();
   if (!isOwner) return null;
 
   const operators = staff.filter((s) => isVetOrOwner(s.role) && s.walletAddress);
@@ -89,10 +91,10 @@ export function OperatorsSection({staff, cloneAddress, isOwner}: {staff: StaffDo
   return (
     <FormSection
       title="Issuance operators"
-      helperText="Only the DogTag protocol admin can grant or revoke issuance rights. Apply for this practitioner in the DogTag admin portal (Issuance operators on your clinic's status page). A vet or owner needs BOTH a recorded wallet (Practitioner profiles above) and Active status here before they can sign issuance transactions."
+      helperText={`Only the DogTag protocol admin can grant or revoke issuance rights. Apply for this practitioner in the DogTag admin portal (Issuance operators on your ${org}'s status page). A vet or owner needs BOTH a recorded wallet (Practitioner profiles above) and Active status here before they can sign issuance transactions.`}
     >
       {!cloneAddress ? (
-        <p className="text-body text-ink-faint">Run the setup wizard first to discover this clinic&apos;s clone address.</p>
+        <p className="text-body text-ink-faint">Run the setup wizard first to discover this {org}&apos;s clone address.</p>
       ) : operators.length === 0 ? (
         <p className="text-body text-ink-faint">No vet or owner staff have recorded a wallet address yet - set one in Practitioner profiles above.</p>
       ) : (

@@ -23,8 +23,10 @@ import {SettingsForm} from "@/app/(app)/settings/SettingsForm";
 import {StaffSection} from "@/app/(app)/settings/StaffSection";
 import {isVetOrOwner} from "@/lib/staffRoleTone";
 import {toPlain} from "@/lib/toPlain";
+import {serverBrand} from "@/lib/brand.server";
 
 export default async function SettingsPage() {
+  const {org, mode} = serverBrand();
   await connectToDatabase();
   const [settings, bookingSettings, rules, exceptions, abuseEntries, staff, practitioners, session] = await Promise.all([
     getClinicSettings(),
@@ -54,7 +56,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Deployment configuration for this clinic." />
+      <PageHeader title="Settings" description={`Deployment configuration for this ${org}.`} />
       <div className="mb-6 max-w-2xl">
         <KeyValuePanel
           title="Chain identity"
@@ -92,11 +94,11 @@ export default async function SettingsPage() {
       {!settings.cloneAddress && (
         <div className="mb-6 max-w-2xl">
           <Banner tone="info" title="Chain identity is not set up" dismissKey="settings-no-clone">
-            Run the setup wizard to connect a wallet and discover this clinic&apos;s clone.
+            Run the setup wizard to connect a wallet and discover this {org}&apos;s clone.
           </Banner>
         </div>
       )}
-      <SettingsForm initial={settings} isOwner={isOwner} />
+      <SettingsForm initial={settings} isOwner={isOwner} operatorStatus={myOperatorStatus?.status} />
       <div className="mt-6 max-w-2xl space-y-6">
         <StaffSection initial={staff} isOwner={isOwner} currentStaffId={session?.user?.staffId} />
         {/* WP4.13 item 3 - deliberately its OWN conditional, not folded into the MyWalletSection
@@ -105,11 +107,18 @@ export default async function SettingsPage() {
             null (an unreadable chain, or the clone not being set up yet). */}
         {isVetOrOwner(session?.user?.role) && myStaff && <MyProfileSection initial={myStaff} />}
         {isVetOrOwner(session?.user?.role) && myStaff && myOperatorStatus && (
-          <MyWalletSection initial={myStaff} status={myOperatorStatus.status} />
+          <div id="my-wallet" className="scroll-mt-6">
+            <MyWalletSection initial={myStaff} status={myOperatorStatus.status} />
+          </div>
         )}
         <OperatorsSection staff={staff} cloneAddress={settings.cloneAddress} isOwner={isOwner} />
-        <BookingConfigSection settings={bookingSettings} rules={rules} exceptions={exceptions} practitioners={practitioners} isOwner={isOwner} />
-        <IcsFeedSection initialToken={settings.icsFeedToken} publicBaseUrl={env.PUBLIC_BASE_URL} />
+        {/* Booking hours and the appointments calendar feed only exist on clinic deployments. */}
+        {mode !== "manual_verification" && (
+          <>
+            <BookingConfigSection settings={bookingSettings} rules={rules} exceptions={exceptions} practitioners={practitioners} isOwner={isOwner} />
+            <IcsFeedSection initialToken={settings.icsFeedToken} publicBaseUrl={env.PUBLIC_BASE_URL} />
+          </>
+        )}
         <ConsentRelayerSection initial={Boolean(settings.consentRelayerViaCloneEnabled)} isOwner={isOwner} />
         <AbuseLogSection entries={abuseEntries} timeZone={bookingSettings.timezone} />
       </div>

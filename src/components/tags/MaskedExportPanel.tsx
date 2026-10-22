@@ -6,6 +6,7 @@ import {Button} from "@/components/ui/controls";
 import {MonoValue} from "@/components/ui/MonoValue";
 import {QrSurface} from "@/components/ui/QrSurface";
 import {useSnackbar} from "@/components/ui/Snackbar";
+import {useBrand} from "@/components/BrandProvider";
 
 interface ExportableFieldWire {
   keyPath: string;
@@ -54,6 +55,7 @@ type ActionKind = "download" | "qr" | "copy";
  * one-time token without ever delivering the file).
  */
 export function MaskedExportPanel({petId, onClose}: {petId: string; onClose: () => void}) {
+  const {org} = useBrand();
   const snackbar = useSnackbar();
   const [fields, setFields] = useState<FieldsResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -196,7 +198,7 @@ export function MaskedExportPanel({petId, onClose}: {petId: string; onClose: () 
           {fields.alreadyMaskedCount > 0 && (
             <p className="text-caption text-ink-faint">
               {fields.alreadyMaskedCount} field{fields.alreadyMaskedCount === 1 ? "" : "s"} already masked by the owner - not listed above
-              because this clinic never received {fields.alreadyMaskedCount === 1 ? "its" : "their"} data, only a hash. There is nothing
+              because this {org} never received {fields.alreadyMaskedCount === 1 ? "its" : "their"} data, only a hash. There is nothing
               to unmask.
             </p>
           )}

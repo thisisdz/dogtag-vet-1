@@ -2,7 +2,7 @@ import {notFound} from "next/navigation";
 import {GalleryContent} from "@/app/design/GalleryContent";
 
 export const metadata = {
-  title: "Design gallery - DogTag Vet (dev)",
+  title: "Design gallery (dev)",
 };
 
 /** Dev-only component gallery: the liquid-glass brand layers and every shared UI primitive, on the

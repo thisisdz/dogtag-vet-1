@@ -13,6 +13,9 @@ export function normalizeIssuerDomain(value: string): string {
   return value.trim().toLowerCase().replace(/^[a-z][a-z0-9+.-]*:\/\//, "").replace(/\/+$/, "");
 }
 
+/** A bare DNS host with at least one dot - what an already-normalized issuer domain must match. */
+export const ISSUER_DOMAIN_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+
 export const clinicSettingsInputSchema = z.object({
   entityAccount: hexAddress.optional(),
   cloneAddress: hexAddress.optional(),
@@ -28,7 +31,7 @@ export const clinicSettingsInputSchema = z.object({
       domain: z
         .preprocess(
           (v) => (typeof v === "string" ? normalizeIssuerDomain(v) : v),
-          z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/, "Enter a bare domain, e.g. acmevet.com"),
+          z.string().regex(ISSUER_DOMAIN_PATTERN, "Enter a bare domain, e.g. acmevet.com"),
         )
         .optional(),
       phone: z.string().trim().optional(),

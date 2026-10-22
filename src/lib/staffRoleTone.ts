@@ -178,18 +178,18 @@ export const operatorStatusBadge: Record<OperatorStatus, {tone: StatusTone; labe
  * cares about whichever wallet is actually connected at issuance time, never this app's own
  * record of one, so a vet with no RECORDED address might still hold a whitelisted connected
  * wallet the app simply has no way to know about. */
-export function operatorStatusExplanation(status: OperatorStatus): string {
+export function operatorStatusExplanation(status: OperatorStatus, org = "clinic"): string {
   switch (status) {
     case "whitelisted":
-      return "This address is whitelisted on the clinic's clone - you can issue DogTags with it.";
+      return `This address is whitelisted on the ${org}'s clone - you can issue DogTags with it.`;
     case "not-whitelisted":
-      return "You are a vet/owner but this address is not whitelisted on the clinic clone - you cannot issue DogTags until the DogTag admin approves an operator request for it in the admin portal.";
+      return `You are a vet/owner but this address is not whitelisted on the ${org} clone - you cannot issue DogTags until the DogTag admin approves an operator request for it in the admin portal.`;
     case "no-address":
       return "No wallet address is on file for you yet, so this app cannot confirm whether you can issue DogTags on chain. Record one above, or ask an owner to assign one in Practitioner profiles.";
     case "not-configured":
-      return "This clinic's clone has not been set up yet (run the setup wizard in Settings), so whitelist status cannot be checked yet.";
+      return `This ${org}'s clone has not been set up yet (run the setup wizard in Settings), so whitelist status cannot be checked yet.`;
     case "unreadable":
-      return "The clinic's clone could not be reached just now, so whitelist status could not be confirmed - try again shortly.";
+      return `The ${org}'s clone could not be reached just now, so whitelist status could not be confirmed - try again shortly.`;
   }
 }
 

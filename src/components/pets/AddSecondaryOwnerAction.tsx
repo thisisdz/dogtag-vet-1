@@ -15,6 +15,7 @@ import {roax} from "@/lib/chains";
 import {legacyTxWithGas} from "@/lib/chainWrite";
 import {decodeRefundOutcome, refundFeedbackMessage, type RefundOutcome} from "@/lib/refundFeedback";
 import type {ClientDoc} from "@/lib/models/Client";
+import {useBrand} from "@/components/BrandProvider";
 
 interface StartAddResponse {
   registrationId: string;
@@ -46,6 +47,7 @@ function clientSecondaryLine(client: ClientDoc): string {
  * decisive `isSecondary` chain re-read, `lib/delegation/reconcile.ts`) -> `router.refresh()`.
  */
 export function AddSecondaryOwnerAction({petId, dogTagIdField, disabled}: {petId: string; dogTagIdField: string; disabled?: boolean}) {
+  const {org} = useBrand();
   const router = useRouter();
   const snackbar = useSnackbar();
   const {address, chainId} = useAccount();
@@ -172,7 +174,7 @@ export function AddSecondaryOwnerAction({petId, dogTagIdField, disabled}: {petId
       const settingsRes = await fetch("/api/settings");
       const settings = settingsRes.ok ? await settingsRes.json() : null;
       if (!settings?.cloneAddress) {
-        snackbar.show("This clinic has not completed setup", "danger");
+        snackbar.show(`This ${org} has not completed setup`, "danger");
         return;
       }
       cloneAddressRef.current = settings.cloneAddress;
@@ -313,7 +315,7 @@ export function AddSecondaryOwnerAction({petId, dogTagIdField, disabled}: {petId
           </Button>
         </>
       )}
-      {status === "confirmed" && refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome)}</p>}
+      {status === "confirmed" && refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome, org)}</p>}
       {(status === "submitting" || (pendingTxHash && !receipt.isSuccess && !receipt.isError && status !== "error")) && (
         <StatusBadge tone="info" label="Confirming on chain..." />
       )}

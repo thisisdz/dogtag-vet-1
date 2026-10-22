@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import lockup from "@/components/brand/dogtag-lockup.png";
 import mark from "@/components/brand/dogtag-mark.png";
+import {useBrand} from "@/components/BrandProvider";
 
 /*
  * The DogTag liquid-glass mark and wordmark (docs/BRAND.md). Raster art taken from the brand deck
@@ -9,15 +12,16 @@ import mark from "@/components/brand/dogtag-mark.png";
  * (sign-in, landing, booking) with no public/ folder.
  */
 
-/** Mark + "dogtag" wordmark, with a small "Vet" product label. `height` is the wordmark's
- * rendered height in px. */
+/** Mark + "dogtag" wordmark, with this deployment's small product label ("Vet" or "Verify", from
+ * `useBrand()`). `height` is the wordmark's rendered height in px. */
 export function BrandLockup({height = 28, showProduct = true}: {height?: number; showProduct?: boolean}) {
+  const {productLabel} = useBrand();
   const width = Math.round((height * lockup.width) / lockup.height);
   return (
     <span className="inline-flex items-end gap-1.5">
       <Image src={lockup} alt="DogTag" width={width} height={height} priority />
       {showProduct && (
-        <span className="mb-0.5 font-display text-caption font-extrabold uppercase tracking-wider text-ink-muted">Vet</span>
+        <span className="mb-0.5 font-display text-caption font-extrabold uppercase tracking-wider text-ink-muted">{productLabel}</span>
       )}
     </span>
   );

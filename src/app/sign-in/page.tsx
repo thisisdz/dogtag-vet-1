@@ -1,4 +1,5 @@
 import {getServerEnv, isDevLoginEnabled} from "@/lib/env";
+import {serverBrand} from "@/lib/brand.server";
 import {Button, Input} from "@/components/ui/controls";
 import {FormField} from "@/components/ui/FormSection";
 import {Banner} from "@/components/ui/Banner";
@@ -11,13 +12,18 @@ export default async function SignInPage({searchParams}: {searchParams: Promise<
   const googleEnabled = Boolean(env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET);
   const emailEnabled = Boolean(env.EMAIL_SERVER && env.EMAIL_FROM);
   const devLoginEnabled = isDevLoginEnabled();
+  const brand = serverBrand();
+  const manualVerification = brand.mode === "manual_verification";
+  const emailPlaceholder = manualVerification ? "you@dogtagapp.com" : "you@clinic.example";
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <BrandLockup height={36} />
       <div className="glass w-full max-w-sm rounded-card p-6">
-        <h1 className="mb-1 text-section-title text-ink">Staff sign in</h1>
-        <p className="mb-6 text-body text-ink-muted">Access this clinic&apos;s DogTag Vet workspace.</p>
+        <h1 className="mb-1 text-section-title text-ink">{manualVerification ? `Sign in to ${brand.product}` : "Staff sign in"}</h1>
+        <p className="mb-6 text-body text-ink-muted">
+          {manualVerification ? `Access the ${brand.product} workspace.` : <>Access this clinic&apos;s {brand.product} workspace.</>}
+        </p>
 
         {error === "AccessDenied" && (
           <div className="mb-4">
@@ -39,7 +45,7 @@ export default async function SignInPage({searchParams}: {searchParams: Promise<
           {emailEnabled && (
             <form action={signInWithEmail} className="space-y-3">
               <FormField label="Email" htmlFor="email-magic-link" helperText="We'll send you a one-time sign-in link.">
-                <Input id="email-magic-link" name="email" type="email" required placeholder="you@clinic.example" />
+                <Input id="email-magic-link" name="email" type="email" required placeholder={emailPlaceholder} />
               </FormField>
               <Button type="submit" className="w-full">
                 Send magic link
@@ -54,7 +60,7 @@ export default async function SignInPage({searchParams}: {searchParams: Promise<
               </Banner>
               <form action={signInWithDevLogin} className="space-y-3">
                 <FormField label="Email" htmlFor="email-dev-login">
-                  <Input id="email-dev-login" name="email" type="email" required placeholder="you@clinic.example" />
+                  <Input id="email-dev-login" name="email" type="email" required placeholder={emailPlaceholder} />
                 </FormField>
                 <Button type="submit" variant="secondary" className="w-full">
                   Dev sign in (test only)

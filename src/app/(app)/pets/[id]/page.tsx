@@ -16,6 +16,7 @@ import {PetTagCard} from "@/components/pets/PetTagCard";
 import {PetDetailTabs} from "@/components/pets/PetDetailTabs";
 import {OwnersCard} from "@/components/pets/OwnersCard";
 import {RecordsCard} from "@/components/pets/RecordsCard";
+import {IssuerReadinessBanner} from "@/components/IssuerReadinessBanner";
 import {VetWalletStatusBanner} from "@/app/(app)/tags/VetWalletStatusBanner";
 import {toPlain} from "@/lib/toPlain";
 
@@ -51,6 +52,11 @@ export default async function PetDetailPage({params}: {params: Promise<{id: stri
       <PageHeader title={pet.name} description="Pet record." />
       {canManage && operatorStatus && pet.dogTag?.dogTagIdField && (
         <VetWalletStatusBanner status={operatorStatus.status} recordedAddress={operatorStatus.recordedAddress} />
+      )}
+      {canManage && pet.dogTag?.dogTagIdField && (
+        <IssuerReadinessBanner
+          input={{name: settings.businessProfile?.name, domain: settings.businessProfile?.domain, cloneAddress: settings.cloneAddress}}
+        />
       )}
       <PetDetailTabs
         profileTab={

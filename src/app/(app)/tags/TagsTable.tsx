@@ -21,6 +21,7 @@ import {dogTagStatusLabel, dogTagStatusTone, mintSessionStatusLabel, mintSession
 import {useGasPreflight} from "@/lib/useGasPreflight";
 import type {PetDoc} from "@/lib/models/Pet";
 import type {MintSessionDoc} from "@/lib/models/MintSession";
+import {useBrand} from "@/components/BrandProvider";
 
 interface TagsResponse {
   issued: PetDoc[];
@@ -31,6 +32,7 @@ interface TagsResponse {
  * Actions per row: revoke, reactivate, replace"). Every chain write here goes through the
  * connected operator wallet via wagmi, then confirms with `/api/tags/:petId/lifecycle`. */
 export function TagsTable({timeZone}: {timeZone: string}) {
+  const {org} = useBrand();
   const {address, chainId} = useAccount();
   const {writeContractAsync} = useWriteContract();
   const publicClient = usePublicClient();
@@ -87,7 +89,7 @@ export function TagsTable({timeZone}: {timeZone: string}) {
             // effect for why), and `ok` here already implies `receipt.isSuccess` (the lifecycle
             // route's own `r.ok` check re-verifies against the chain before ever returning success).
             const refundMessage =
-              receipt.isSuccess && receipt.data ? ` ${refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, pendingTx.cloneAddress))}` : "";
+              receipt.isSuccess && receipt.data ? ` ${refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, pendingTx.cloneAddress), org)}` : "";
             snackbar.show(`Tag ${pendingTx.action === "revoke" ? "revoked" : "reactivated"}.${refundMessage}`, "ok");
           } else {
             snackbar.show(body?.error?.message ?? `Tag ${pendingTx.action} transaction failed`, "danger");

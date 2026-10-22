@@ -10,6 +10,7 @@ import {useSnackbar} from "@/components/ui/Snackbar";
 import {IssuanceWalletBalanceLine} from "@/components/wallet/IssuanceWalletBalanceLine";
 import {operatorStatusBadge, operatorStatusExplanation, type OperatorStatus} from "@/lib/staffRoleTone";
 import type {StaffDoc} from "@/lib/models/Staff";
+import {useBrand} from "@/components/BrandProvider";
 
 /**
  * `/settings`'s WP4.7C item 2 self-service counterpart to `StaffSection`'s owner-only wallet field
@@ -27,6 +28,7 @@ import type {StaffDoc} from "@/lib/models/Staff";
  * same idiom every other mutation on this page already uses.
  */
 export function MyWalletSection({initial, status}: {initial: StaffDoc; status: OperatorStatus}) {
+  const {org} = useBrand();
   const snackbar = useSnackbar();
   const router = useRouter();
   const {address: connectedAddress, isConnected} = useAccount();
@@ -96,7 +98,7 @@ export function MyWalletSection({initial, status}: {initial: StaffDoc; status: O
       <div className="flex items-center gap-2">
         <StatusBadge tone={operatorStatusBadge[status].tone} label={operatorStatusBadge[status].label} />
       </div>
-      <p className="text-body text-ink-muted">{operatorStatusExplanation(status)}</p>
+      <p className="text-body text-ink-muted">{operatorStatusExplanation(status, org)}</p>
       {/* WP4.19 V1 - the CONNECTED wallet's live PLASMA balance and low-balance warning, not the
           recorded `initial.walletAddress` below: the balance that matters is whichever wallet will
           actually sign the next issuance transaction, exactly the same "connected, not recorded"

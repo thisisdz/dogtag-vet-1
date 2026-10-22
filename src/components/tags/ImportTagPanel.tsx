@@ -5,6 +5,7 @@ import {Button, Input} from "@/components/ui/controls";
 import {FormField, FormSection} from "@/components/ui/FormSection";
 import {ImportQrPanel} from "@/components/tags/ImportQrPanel";
 import type {PetDoc} from "@/lib/models/Pet";
+import {useBrand} from "@/components/BrandProvider";
 
 type TargetMode = "existing" | "new";
 
@@ -23,6 +24,7 @@ type TargetMode = "existing" | "new";
  * inherited asymmetry from where each entry point lives, not a new gate this panel adds.
  */
 export function ImportTagPanel({onClose}: {onClose: () => void}) {
+  const {org} = useBrand();
   const [mode, setMode] = useState<TargetMode>("existing");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PetDoc[]>([]);
@@ -51,7 +53,7 @@ export function ImportTagPanel({onClose}: {onClose: () => void}) {
   return (
     <FormSection
       title="Import tag"
-      helperText="Bring another clinic's (or your own reclaimed) DogTag data onto a pet here - the owner's app proves it on chain before anything is saved."
+      helperText={`Bring another ${org}'s (or your own reclaimed) DogTag data onto a pet here - the owner's app proves it on chain before anything is saved.`}
     >
       <div className="flex gap-2">
         <Button

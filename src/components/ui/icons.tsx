@@ -12,3 +12,22 @@ export function AlertIcon({size = 16, className}: {size?: number; className?: st
     </svg>
   );
 }
+
+/** Check in a circle - a completed step or a ready state (paired with --ok, never color alone). */
+export function CheckCircleIcon({size = 16, className}: {size?: number; className?: string}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden className={className}>
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5.25 8.25l1.9 1.9 3.6-3.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Empty circle - a step not done yet. */
+export function EmptyCircleIcon({size = 16, className}: {size?: number; className?: string}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden className={className}>
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}

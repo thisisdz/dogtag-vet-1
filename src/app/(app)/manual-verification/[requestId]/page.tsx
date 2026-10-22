@@ -11,6 +11,8 @@ import {syncRequest} from "@/lib/manualVerification/sync";
 import {manualVerificationKindLabel, manualVerificationStatusLabel, manualVerificationStatusTone} from "@/lib/manualVerificationTone";
 import {isVetOrOwner} from "@/lib/staffRoleTone";
 import {toPlain} from "@/lib/toPlain";
+import {getClinicSettings} from "@/lib/models/ClinicSettings";
+import {IssuerReadinessBanner} from "@/components/IssuerReadinessBanner";
 import {RequestReview} from "@/app/(app)/manual-verification/[requestId]/RequestReview";
 
 /** One manual verification request: the owner's document beside the record form, the decision
@@ -36,6 +38,10 @@ export default async function ManualVerificationRequestPage({params}: {params: P
       ).lean<Pick<ManualVerificationDocumentDoc, "contentType" | "byteLength">>()
     : null;
 
+  // Only while there is still something to sign for this request.
+  const signingAhead = ["submitted", "in_review", "approved", "bound", "issued", "needs_attention"].includes(request.status);
+  const settings = signingAhead ? await getClinicSettings() : null;
+
   return (
     <>
       <PageHeader
@@ -43,6 +49,11 @@ export default async function ManualVerificationRequestPage({params}: {params: P
         description={`Requested by ${request.requester.name} (${request.requester.email})`}
         action={<StatusBadge tone={manualVerificationStatusTone[request.status]} label={manualVerificationStatusLabel[request.status]} />}
       />
+      {settings && (
+        <IssuerReadinessBanner
+          input={{name: settings.businessProfile?.name, domain: settings.businessProfile?.domain, cloneAddress: settings.cloneAddress}}
+        />
+      )}
       <RequestReview
         request={request}
         pet={pet}

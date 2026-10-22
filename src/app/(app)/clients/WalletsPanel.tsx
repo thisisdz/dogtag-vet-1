@@ -19,6 +19,7 @@ import {decodeReceiptPayload, receiptExportJson} from "@/lib/registration/receip
 import {decodeMobileBookingPayload} from "@/lib/booking/mobileEip712";
 import type {RegistrationStatus} from "@/lib/registration/flow";
 import type {ClientWallet} from "@/lib/models/Client";
+import {useBrand} from "@/components/BrandProvider";
 
 interface StartSessionResponse {
   token: string;
@@ -123,6 +124,7 @@ function isRegistrationSourced(wallet: ClientWallet): wallet is RegistrationSour
 }
 
 function ReceiptPanel({wallet, timeZone}: {wallet: ClientWallet; timeZone: string}) {
+  const {Org} = useBrand();
   if (wallet.via === "booking") return <MobileBookingReceiptPanel wallet={wallet} timeZone={timeZone} />;
   if (!isRegistrationSourced(wallet)) {
     return (
@@ -146,7 +148,7 @@ function ReceiptPanel({wallet, timeZone}: {wallet: ClientWallet; timeZone: strin
   const decoded = decodeReceiptPayload(wallet.receipt.payloadJson);
   const rows: KeyValueRow[] = decoded
     ? [
-        {key: "clinic", label: "Clinic", value: <AddressChip address={decoded.message.clinic} />},
+        {key: "clinic", label: Org, value: <AddressChip address={decoded.message.clinic} />},
         {key: "chainId", label: "Chain ID", value: String(decoded.domain.chainId)},
         {key: "clientHash", label: "Client hash", value: <HashCell value={decoded.message.clientHash} kind="doc" />},
         {key: "issuedAt", label: "Issued at", value: formatUnixSeconds(Number(decoded.message.issuedAt), timeZone)},
@@ -193,10 +195,11 @@ function ReceiptPanel({wallet, timeZone}: {wallet: ClientWallet; timeZone: strin
 /** The `via: "booking"` counterpart to `ReceiptPanel` above - same decoded-fields treatment, over
  * the `MobileBooking` struct's own (smaller) field set, no download button. */
 function MobileBookingReceiptPanel({wallet, timeZone}: {wallet: ClientWallet; timeZone: string}) {
+  const {Org} = useBrand();
   const decoded = decodeMobileBookingPayload(wallet.receipt.payloadJson);
   const rows: KeyValueRow[] = decoded
     ? [
-        {key: "clinic", label: "Clinic", value: <AddressChip address={decoded.message.clinic} />},
+        {key: "clinic", label: Org, value: <AddressChip address={decoded.message.clinic} />},
         {key: "chainId", label: "Chain ID", value: String(decoded.domain.chainId)},
         {key: "bookingHash", label: "Booking hash", value: <HashCell value={decoded.message.bookingHash} kind="doc" />},
         {key: "issuedAt", label: "Issued at", value: formatUnixSeconds(Number(decoded.message.issuedAt), timeZone)},

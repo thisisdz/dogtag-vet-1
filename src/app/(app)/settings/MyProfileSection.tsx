@@ -6,6 +6,7 @@ import {Button, Input} from "@/components/ui/controls";
 import {FormField, FormSection} from "@/components/ui/FormSection";
 import {useSnackbar} from "@/components/ui/Snackbar";
 import type {StaffDoc} from "@/lib/models/Staff";
+import {useBrand} from "@/components/BrandProvider";
 
 type ProfileFieldKey = "firstName" | "lastName" | "title" | "accreditationNumber";
 
@@ -47,6 +48,7 @@ function parseFieldErrors(body: unknown): {message?: string; fields: FieldErrors
  * `accreditationNumber`).
  */
 export function MyProfileSection({initial}: {initial: StaffDoc}) {
+  const {org} = useBrand();
   const snackbar = useSnackbar();
   const router = useRouter();
   const [firstName, setFirstName] = useState(initial.firstName ?? "");
@@ -135,7 +137,7 @@ export function MyProfileSection({initial}: {initial: StaffDoc}) {
   return (
     <FormSection
       title="My profile"
-      helperText="Your name, qualification/title, and government accreditation number. The accreditation number is kept internal to this clinic and never shown to clients or on the public booking page."
+      helperText={`Your name, qualification/title, and government accreditation number. The accreditation number is kept internal to this ${org} and never shown to clients or on the public booking page.`}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="First name" htmlFor="my-first-name" error={fieldErrors.firstName}>

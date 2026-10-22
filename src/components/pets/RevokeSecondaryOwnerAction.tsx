@@ -12,6 +12,7 @@ import {vetIssuerAbi} from "@/lib/abi";
 import {roax} from "@/lib/chains";
 import {legacyTxWithGas} from "@/lib/chainWrite";
 import {decodeRefundOutcome, refundFeedbackMessage} from "@/lib/refundFeedback";
+import {useBrand} from "@/components/BrandProvider";
 
 interface StaffStatus {
   kind: "add" | "revoke";
@@ -44,6 +45,7 @@ export function RevokeSecondaryOwnerAction({
    * previously not gated on `delegationConfigured` at all, so the two actions disagreed. */
   disabled?: boolean;
 }) {
+  const {org} = useBrand();
   const router = useRouter();
   const snackbar = useSnackbar();
   const {address, chainId} = useAccount();
@@ -154,8 +156,8 @@ export function RevokeSecondaryOwnerAction({
       const settingsRes = await fetch("/api/settings");
       const settings = settingsRes.ok ? await settingsRes.json() : null;
       if (!settings?.cloneAddress) {
-        snackbar.show("This clinic has not completed setup", "danger");
-        setInlineError("This clinic has not completed setup");
+        snackbar.show(`This ${org} has not completed setup`, "danger");
+        setInlineError(`This ${org} has not completed setup`);
         backToIdle();
         return;
       }
@@ -201,7 +203,7 @@ export function RevokeSecondaryOwnerAction({
             // WP4.19 V2 - only on an actually-successful receipt.
             const refundMessage =
               receipt.isSuccess && receipt.data && cloneAddressRef.current
-                ? refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, cloneAddressRef.current))
+                ? refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, cloneAddressRef.current), org)
                 : undefined;
             onConfirmed(refundMessage);
             return;

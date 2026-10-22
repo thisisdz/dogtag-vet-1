@@ -22,6 +22,7 @@ import {mintSessionStatusLabel, mintSessionStatusTone} from "@/lib/tagStatusTone
 import {useGasPreflight} from "@/lib/useGasPreflight";
 import type {ClientDoc} from "@/lib/models/Client";
 import type {PetDoc, PetSex, WeightEntry} from "@/lib/models/Pet";
+import {useBrand} from "@/components/BrandProvider";
 
 interface StartSessionResponse {
   token: string;
@@ -81,6 +82,7 @@ const initialProfile = {
  * plain JSON.
  */
 export function TagIssueWizard() {
+  const {org} = useBrand();
   const {address, isConnected, chainId} = useAccount();
   const {switchChain} = useSwitchChain();
   const {writeContractAsync} = useWriteContract();
@@ -351,7 +353,7 @@ export function TagIssueWizard() {
       const settingsRes = await fetch("/api/settings");
       const settings = settingsRes.ok ? await settingsRes.json() : null;
       if (!settings?.cloneAddress) {
-        snackbar.show("This clinic has not completed setup", "danger");
+        snackbar.show(`This ${org} has not completed setup`, "danger");
         return;
       }
       // WP4.19 V3 - refuse to send when the wallet cannot even cover issueTag's own gas floor at
@@ -532,7 +534,7 @@ export function TagIssueWizard() {
   if (!isConnected) {
     return (
       <Banner tone="warn" title="Connect your operator wallet">
-        Issuing a tag requires a connected wallet whitelisted on this clinic&apos;s clone.
+        Issuing a tag requires a connected wallet whitelisted on this {org}&apos;s clone.
       </Banner>
     );
   }
@@ -575,7 +577,7 @@ export function TagIssueWizard() {
                 The device built and bound its profile tree. Issue this tag on chain from your operator wallet.
               </p>
               <p className="text-caption text-ink-faint">
-                Gas is fronted by your wallet and refunded by the clinic&apos;s clone on success (failed attempts are
+                Gas is fronted by your wallet and refunded by the {org}&apos;s clone on success (failed attempts are
                 not refunded).
               </p>
               <Button onClick={handleIssue} disabled={issuing}>
@@ -594,7 +596,7 @@ export function TagIssueWizard() {
               <p className="text-body text-ok">Tag bound successfully.</p>
               {/* WP4.19 V2 - whether the clinic's clone refunded the gas this wallet fronted for
                   issueTag, decoded from the mined receipt's own logs (never a guess). */}
-              {issueRefundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(issueRefundOutcome)}</p>}
+              {issueRefundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(issueRefundOutcome, org)}</p>}
               {session.attestationSigned ? (
                 <StatusBadge label="Issuer attestation signed" tone="ok" />
               ) : (
@@ -623,7 +625,7 @@ export function TagIssueWizard() {
               {previousTagRevoked && (
                 <div className="space-y-1">
                   <p className="text-body text-ok">Previous tag revoked.</p>
-                  {revokePrevRefundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(revokePrevRefundOutcome)}</p>}
+                  {revokePrevRefundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(revokePrevRefundOutcome, org)}</p>}
                 </div>
               )}
             </div>

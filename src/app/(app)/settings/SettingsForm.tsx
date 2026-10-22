@@ -1,6 +1,7 @@
 "use client";
 
 import {useState} from "react";
+import {useRouter} from "next/navigation";
 import {FormField, FormSection} from "@/components/ui/FormSection";
 import {Button, Input} from "@/components/ui/controls";
 import {useSnackbar} from "@/components/ui/Snackbar";
@@ -8,6 +9,11 @@ import type {ClinicSettingsDoc, ReceivingAddress} from "@/lib/models/ClinicSetti
 import {paymentChainByKey, paymentChainDisplayName, type PaymentChainKey} from "@/lib/chains";
 import {ALL_CHAIN_KEYS} from "@/lib/payments/tokenTable";
 import {normalizeIssuerDomain} from "@/lib/schemas/settings";
+import {useBrand} from "@/components/BrandProvider";
+import type {Brand} from "@/lib/brand";
+import {isValidIssuerDomain} from "@/lib/issuerReadiness";
+import type {OperatorStatus} from "@/lib/staffRoleTone";
+import {IssuerReadinessCard} from "@/app/(app)/settings/IssuerReadinessCard";
 
 /** Form-side error keys: the API's dotted payload path, except receiving addresses, which the API
  * reports by array index ("receivingAddresses.0.address") and this form keys by chain
@@ -15,7 +21,6 @@ import {normalizeIssuerDomain} from "@/lib/schemas/settings";
 type FieldErrors = Record<string, string | undefined>;
 
 const FIELD_LABELS: Record<string, string> = {
-  "businessProfile.name": "Clinic name",
   "businessProfile.logoUrl": "Logo URL",
   "businessProfile.contactEmail": "Booking notification email",
   "businessProfile.domain": "Issuer domain",
@@ -46,8 +51,9 @@ function parseFieldErrors(body: unknown, submittedReceiving: ReceivingAddress[])
   return {message: error?.message, fields};
 }
 
-function fieldLabel(key: string): string {
+function fieldLabel(key: string, brand: Brand): string {
   if (key.startsWith("receiving.")) return `${paymentChainLabel(key.slice("receiving.".length) as PaymentChainKey)} receiving address`;
+  if (key === "businessProfile.name") return `${brand.Org} name`;
   return FIELD_LABELS[key] ?? key;
 }
 
@@ -59,8 +65,20 @@ function paymentChainLabel(chainKey: PaymentChainKey): string {
   return paymentChainByKey[chainKey].testnet ? `${name} (testnet)` : name;
 }
 
-export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; isOwner: boolean}) {
+export function SettingsForm({
+  initial,
+  isOwner,
+  operatorStatus,
+}: {
+  initial: ClinicSettingsDoc;
+  isOwner: boolean;
+  /** The signed-in staff member's operator status, for the attestation checklist. */
+  operatorStatus?: OperatorStatus;
+}) {
   const snackbar = useSnackbar();
+  const router = useRouter();
+  const brand = useBrand();
+  const manualVerification = brand.mode === "manual_verification";
   const [businessName, setBusinessName] = useState(initial.businessProfile?.name ?? "");
   const [logoUrl, setLogoUrl] = useState(initial.businessProfile?.logoUrl ?? "");
   const [contactEmail, setContactEmail] = useState(initial.businessProfile?.contactEmail ?? "");
@@ -85,6 +103,8 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
   const [rpc, setRpc] = useState<Record<PaymentChainKey, string>>({
     roax: initial.rpcOverrides?.roax ?? "",
   });
+  // What the server holds - the readiness card only turns green once the saved values qualify.
+  const [saved, setSaved] = useState({name: initial.businessProfile?.name ?? "", domain: initial.businessProfile?.domain ?? ""});
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -145,12 +165,14 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
         setFieldErrors(fields);
         const firstField = Object.entries(fields).find((entry): entry is [string, string] => Boolean(entry[1]));
         snackbar.show(
-          firstField ? `${fieldLabel(firstField[0])}: ${firstField[1]}` : (message ?? "Could not save settings - try again"),
+          firstField ? `${fieldLabel(firstField[0], brand)}: ${firstField[1]}` : (message ?? "Could not save settings - try again"),
           "danger",
         );
         return;
       }
+      setSaved({name: businessName.trim(), domain: normalizedDomain});
       snackbar.show("Settings saved", "ok");
+      router.refresh();
     } catch {
       snackbar.show("Could not save settings - try again", "danger");
     } finally {
@@ -162,8 +184,24 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
     // PATCH /api/settings is owner-only; a disabled fieldset locks every input and the Save button
     // for everyone else, who can still read the current values.
     <fieldset disabled={!isOwner} className="max-w-2xl space-y-6">
-      <FormSection title="Business profile" helperText="Shown on invoices and the clinic's public entity card.">
-        <FormField label="Clinic name" htmlFor="business-name" error={fieldErrors["businessProfile.name"]}>
+      <FormSection
+        title={manualVerification ? "Issuer profile" : "Business profile"}
+        helperText={
+          manualVerification
+            ? "Signed into every credential this desk issues, and shown on the public entity card."
+            : "Shown on invoices and the clinic's public entity card."
+        }
+      >
+        <IssuerReadinessCard
+          current={{name: businessName, domain, cloneAddress: initial.cloneAddress, operatorStatus}}
+          saved={{...saved, cloneAddress: initial.cloneAddress, operatorStatus}}
+        />
+        <FormField
+          label={`${brand.Org} name (required for attestations)`}
+          htmlFor="business-name"
+          helperText={manualVerification ? "e.g. DogTag Manual Verification" : undefined}
+          error={fieldErrors["businessProfile.name"]}
+        >
           <Input
             id="business-name"
             value={businessName}
@@ -189,27 +227,30 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
             placeholder="https://"
           />
         </FormField>
+        {/* Public booking is off on the manual-verification desk; any saved value is kept and re-sent. */}
+        {!manualVerification && (
+          <FormField
+            label="Booking notification email"
+            htmlFor="contact-email"
+            helperText="Where a public booking or cancellation notice is sent. Leave blank to skip clinic notifications."
+            error={fieldErrors["businessProfile.contactEmail"]}
+          >
+            <Input
+              id="contact-email"
+              type="email"
+              value={contactEmail}
+              onChange={(e) => {
+                setContactEmail(e.target.value);
+                clearError("businessProfile.contactEmail");
+              }}
+            />
+          </FormField>
+        )}
         <FormField
-          label="Booking notification email"
-          htmlFor="contact-email"
-          helperText="Where a public booking or cancellation notice is sent. Leave blank to skip clinic notifications."
-          error={fieldErrors["businessProfile.contactEmail"]}
-        >
-          <Input
-            id="contact-email"
-            type="email"
-            value={contactEmail}
-            onChange={(e) => {
-              setContactEmail(e.target.value);
-              clearError("businessProfile.contactEmail");
-            }}
-          />
-        </FormField>
-        <FormField
-          label="Issuer domain"
+          label="Issuer domain (required for attestations)"
           htmlFor="business-domain"
-          helperText="This clinic's stable DNS-domain identity, e.g. acmevet.com - signed into every issued DogTag's C3 attestation. Not a URL and not required to resolve to anything; distinct from the notification email above. A pasted https:// prefix or trailing slash is removed on save."
-          error={fieldErrors["businessProfile.domain"]}
+          helperText={domainHelper(domain, brand)}
+          error={fieldErrors["businessProfile.domain"] ?? domainLiveError(domain)}
         >
           <Input
             id="business-domain"
@@ -218,7 +259,7 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
               setDomain(e.target.value);
               clearError("businessProfile.domain");
             }}
-            placeholder="acmevet.com"
+            placeholder={manualVerification ? "dogtagapp.com" : "acmevet.com"}
           />
         </FormField>
         <FormField
@@ -349,11 +390,26 @@ export function SettingsForm({initial, isOwner}: {initial: ClinicSettingsDoc; is
       </FormSection>
 
       <div className="flex items-center justify-end gap-3">
-        {!isOwner && <p className="text-caption text-ink-faint">Only an owner can change clinic settings.</p>}
+        {!isOwner && <p className="text-caption text-ink-faint">Only an owner can change {brand.org} settings.</p>}
         <Button onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save settings"}
         </Button>
       </div>
     </fieldset>
   );
+}
+
+/** Live helper under the issuer domain: what will actually be saved, once there is something typed. */
+function domainHelper(value: string, brand: Brand): string {
+  const normalized = normalizeIssuerDomain(value);
+  if (value.trim() && normalized !== value.trim() && isValidIssuerDomain(normalized)) return `Will be saved as ${normalized}.`;
+  return `The domain this ${brand.org} signs credentials under, e.g. ${brand.mode === "manual_verification" ? "dogtagapp.com" : "acmevet.com"}. Just the domain - no https:// or path.`;
+}
+
+/** Flags, while typing, only what more typing can't fix (a path, port, space or email address);
+ * a half-typed "dogtagapp." stays quiet, and so does an empty field - that is the checklist's job. */
+function domainLiveError(value: string): string | undefined {
+  const normalized = normalizeIssuerDomain(value);
+  if (!normalized || isValidIssuerDomain(normalized)) return undefined;
+  return /[\s/:@]/.test(normalized) ? "Enter just the domain, e.g. dogtagapp.com" : undefined;
 }

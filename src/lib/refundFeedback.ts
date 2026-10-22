@@ -50,8 +50,8 @@ export function decodeRefundOutcome(logs: readonly Log[], cloneAddress: string):
 }
 
 /** Exact copy Kenneth specified (plan section "Refund feedback"). */
-export function refundFeedbackMessage(outcome: RefundOutcome): string {
+export function refundFeedbackMessage(outcome: RefundOutcome, org = "clinic"): string {
   return outcome === "refunded"
-    ? "Gas refunded by the clinic contract"
-    : "Refund skipped, the clinic's refund pool is low: tell your admin";
+    ? `Gas refunded by the ${org} contract`
+    : `Refund skipped, the ${org}'s refund pool is low: tell your admin`;
 }

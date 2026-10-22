@@ -3,6 +3,7 @@
 import {useState} from "react";
 import {FormSection} from "@/components/ui/FormSection";
 import {useSnackbar} from "@/components/ui/Snackbar";
+import {useBrand} from "@/components/BrandProvider";
 
 /**
  * WP4.15 multi-owner (PLANNED) item V5 - the clinic-wide DEFAULT for `/verify`'s "use this
@@ -13,6 +14,7 @@ import {useSnackbar} from "@/components/ui/Snackbar";
  * clone for `canVerify` - `POST /api/verify/start`'s existing preflight refuses cleanly until then.
  */
 export function ConsentRelayerSection({initial, isOwner}: {initial: boolean; isOwner: boolean}) {
+  const {org} = useBrand();
   const snackbar = useSnackbar();
   const [enabled, setEnabled] = useState(initial);
   const [saving, setSaving] = useState(false);
@@ -39,7 +41,7 @@ export function ConsentRelayerSection({initial, isOwner}: {initial: boolean; isO
   return (
     <FormSection
       title="Consent relayer (experimental)"
-      helperText="Default for the /verify page's 'use this clinic's clone as the relayer' option - pending the DogTag admin whitelisting this clinic's clone for canVerify."
+      helperText={`Default for the /verify page's 'use this ${org}'s clone as the relayer' option - pending the DogTag admin whitelisting this ${org}'s clone for canVerify.`}
     >
       <label className="flex items-center gap-2 text-body text-ink">
         <input

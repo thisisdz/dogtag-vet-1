@@ -4,6 +4,7 @@ import {Button} from "@/components/ui/controls";
 import {AddressChip} from "@/components/ui/AddressChip";
 import {usePublicEnv} from "@/lib/usePublicEnv";
 import {buildTopUpRequestUrl} from "@/lib/topUpRequestUrl";
+import {useBrand} from "@/components/BrandProvider";
 
 /**
  * WP4.19 V1/V3 - "Request a top-up", shared by the "My issuance wallet" card, the /tags +
@@ -33,6 +34,7 @@ import {buildTopUpRequestUrl} from "@/lib/topUpRequestUrl";
  * admin's own fix round (parallel wave) adds that option and reads these exact two params.
  */
 export function RequestTopUpButton({walletAddress}: {walletAddress?: string}) {
+  const {org} = useBrand();
   const {adminPortalUrl} = usePublicEnv();
 
   if (!walletAddress) return null;
@@ -58,7 +60,7 @@ export function RequestTopUpButton({walletAddress}: {walletAddress?: string}) {
         Request a top-up
       </Button>
       <p className="text-caption text-ink-faint">
-        Opens the admin portal&apos;s status page in a new tab - sign in with this clinic&apos;s account and file a top-up
+        Opens the admin portal&apos;s status page in a new tab - sign in with this {org}&apos;s account and file a top-up
         request for <AddressChip address={walletAddress} />.
       </p>
     </div>

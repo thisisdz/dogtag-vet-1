@@ -20,6 +20,7 @@ import {recordStatusLabel, recordStatusTone, recordValidityLabel, recordValidity
 import {computeRecordValidity, formatIsoCalendarDate} from "@/lib/records/validity";
 import {formatUnixSeconds} from "@/lib/format";
 import type {RecordArtifactDoc} from "@/lib/models/RecordArtifact";
+import {useBrand} from "@/components/BrandProvider";
 
 function leafValue(record: RecordArtifactDoc, keyPath: string): string {
   return record.leaves.find((l) => l.keyPath === keyPath)?.value ?? "-";
@@ -51,6 +52,7 @@ function downloadAttestation(record: RecordArtifactDoc) {
  * `TagsTable.tsx`'s own revoke idiom), and attestation download for an active, already-attested row.
  */
 export function RecordsCard({petId, timeZone, dogTagIssued}: {petId: string; timeZone: string; dogTagIssued: boolean}) {
+  const {org} = useBrand();
   const {address, chainId} = useAccount();
   const {writeContractAsync} = useWriteContract();
   const publicClient = usePublicClient();
@@ -106,7 +108,7 @@ export function RecordsCard({petId, timeZone, dogTagIssued}: {petId: string; tim
             // WP4.19 V2 - only on an actually-successful receipt (see TagIssueWizard.tsx's
             // identical comment on why an isError receipt has nothing to decode).
             const refundMessage =
-              receipt.isSuccess && receipt.data ? ` ${refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, pendingTx.cloneAddress))}` : "";
+              receipt.isSuccess && receipt.data ? ` ${refundFeedbackMessage(decodeRefundOutcome(receipt.data.logs, pendingTx.cloneAddress), org)}` : "";
             snackbar.show(`Record revoked.${refundMessage}`, "ok");
           } else {
             // Genuine bug this same gap exposed here too (mirroring TagsTable.tsx's own fix): this

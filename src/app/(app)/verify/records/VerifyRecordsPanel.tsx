@@ -65,7 +65,7 @@ function stageDisplay(result: RecordVerifyStoredResult): {tone: StatusTone; labe
     }
     case "verified": {
       if (result.validity === "revoked") {
-        return {tone: "danger", label: "Revoked", explanation: "This record was genuinely issued, but the issuing clinic has since revoked it."};
+        return {tone: "danger", label: "Revoked", explanation: "This record was genuinely issued, but the issuer has since revoked it."};
       }
       if (result.validity === "expired") {
         return {tone: "warn", label: "Expired", explanation: "This record is genuine and was never revoked, but its validity window has passed."};

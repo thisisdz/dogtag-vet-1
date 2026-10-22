@@ -12,6 +12,7 @@ import {roaxPublicClient} from "@/lib/chainRead";
 import {reasonCodeLabel} from "@/lib/reasonCodes";
 import {ActivityFilters} from "@/app/(app)/activity/ActivityFilters";
 import {toPlain} from "@/lib/toPlain";
+import {serverBrand} from "@/lib/brand.server";
 
 function StatTile({label, value, hint}: {label: string; value: string; hint?: string}) {
   return (
@@ -32,6 +33,7 @@ function StatTile({label, value, hint}: {label: string; value: string; hint?: st
  * never emitted.
  */
 export default async function Page({searchParams}: {searchParams: Promise<{type?: string; from?: string; to?: string}>}) {
+  const {org} = serverBrand();
   const {type, from, to} = await searchParams;
   await connectToDatabase();
   const bookingSettings = await getBookingSettings();
@@ -84,11 +86,11 @@ export default async function Page({searchParams}: {searchParams: Promise<{type?
 
   return (
     <>
-      <PageHeader title="On-chain activity" description="This clinic's clone, SBT, and verification events." />
+      <PageHeader title="On-chain activity" description={`This ${org}'s clone, SBT, and verification events.`} />
       <ActivityFilters types={availableTypes} />
       {!settings.cloneAddress && (
         <Banner tone="warn" title="Setup incomplete">
-          Finish the setup wizard to start following this clinic&apos;s clone.
+          Finish the setup wizard to start following this {org}&apos;s clone.
         </Banner>
       )}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3">

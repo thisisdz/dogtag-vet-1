@@ -9,6 +9,7 @@ import {Button, Input, Select} from "@/components/ui/controls";
 import {useSnackbar} from "@/components/ui/Snackbar";
 import {hasExplicitName, isVetOrOwner, practitionerDisplayName, staffRoleLabel, staffRoleOptions} from "@/lib/staffRoleTone";
 import type {StaffDoc, StaffRole} from "@/lib/models/Staff";
+import {useBrand} from "@/components/BrandProvider";
 
 /** The five practitioner-profile fields this card's own zod schema (`updateStaffSchema`) can
  * reject with a per-field message - `role`/`disabled`/`bookable` are a Select/Button/checkbox with
@@ -188,6 +189,7 @@ function WalletAddressField({
  * force horizontal scrolling inside a page meant to read as a narrow settings form, or crush the
  * email/role columns to fit. A stacked per-practitioner block avoids both. */
 export function StaffSection({initial, isOwner, currentStaffId}: {initial: StaffDoc[]; isOwner: boolean; currentStaffId?: string}) {
+  const {org} = useBrand();
   const snackbar = useSnackbar();
   const router = useRouter();
   const [staff, setStaff] = useState(initial);
@@ -405,7 +407,7 @@ export function StaffSection({initial, isOwner, currentStaffId}: {initial: Staff
           // Input's w-full), so neither wrapper is needed any more.
           <div className="mt-4 flex items-end gap-2">
             <FormField label="Invite by email" htmlFor="invite-email" className="min-w-0 flex-1">
-              <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="colleague@clinic.example" />
+              <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={org === "clinic" ? "colleague@clinic.example" : "colleague@dogtagapp.com"} />
             </FormField>
             <Select value={role} onChange={(e) => setRole(e.target.value as StaffRole)} aria-label="Role to invite as" className="w-32 shrink-0">
               {staffRoleOptions.map((option) => (
@@ -423,7 +425,7 @@ export function StaffSection({initial, isOwner, currentStaffId}: {initial: Staff
 
       <FormSection
         title="Practitioner profiles"
-        helperText="Vet and owner accounts can be marked bookable for the public booking page and per-practitioner scheduling, with a name and qualification shown to clients, a government accreditation number kept internal to this clinic, and the wallet used to sign DogTag issuance transactions."
+        helperText={`Vet and owner accounts can be marked bookable for the public booking page and per-practitioner scheduling, with a name and qualification shown to clients, a government accreditation number kept internal to this ${org}, and the wallet used to sign DogTag issuance transactions.`}
       >
         <div className="space-y-4">
           {practitioners.map((s) => {

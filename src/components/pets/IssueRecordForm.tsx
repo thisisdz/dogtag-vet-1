@@ -16,6 +16,7 @@ import {decodeRefundOutcome, refundFeedbackMessage, type RefundOutcome} from "@/
 import {recordStatusLabel, recordStatusTone} from "@/lib/recordStatusTone";
 import {KNOWN_RECORD_STANDARDS} from "@/lib/records/standards";
 import type {RecordArtifactDoc} from "@/lib/models/RecordArtifact";
+import {useBrand} from "@/components/BrandProvider";
 
 const initialForm = {
   targetDisease: "",
@@ -64,6 +65,7 @@ export function IssueRecordForm({
   };
   initialRecord?: RecordArtifactDoc;
 }) {
+  const {org} = useBrand();
   const {address, isConnected, chainId} = useAccount();
   const {switchChain} = useSwitchChain();
   const {writeContractAsync} = useWriteContract();
@@ -264,7 +266,7 @@ export function IssueRecordForm({
   if (!isConnected) {
     return (
       <Banner tone="warn" title="Connect your operator wallet">
-        Issuing a vaccination record requires a connected wallet whitelisted on this clinic&apos;s clone.
+        Issuing a vaccination record requires a connected wallet whitelisted on this {org}&apos;s clone.
       </Banner>
     );
   }
@@ -315,7 +317,7 @@ export function IssueRecordForm({
               </Banner>
             )}
             <p className="text-caption text-ink-faint">
-              Gas is fronted by your wallet and refunded by the clinic&apos;s clone on success (failed attempts are not refunded).
+              Gas is fronted by your wallet and refunded by the {org}&apos;s clone on success (failed attempts are not refunded).
             </p>
             <Button onClick={handleIssue} disabled={issuing || walletMismatch}>
               {issuing ? "Issuing..." : "Issue on chain"}
@@ -329,7 +331,7 @@ export function IssueRecordForm({
           <div className="mt-4 space-y-3">
             <p className="text-body text-ok">Record issued successfully.</p>
             {/* WP4.19 V2 - whether the clinic's clone refunded the gas this wallet fronted. */}
-            {refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome)}</p>}
+            {refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome, org)}</p>}
             {record.attestation || attestationSigned ? (
               <StatusBadge label="Issuer attestation signed" tone="ok" />
             ) : (

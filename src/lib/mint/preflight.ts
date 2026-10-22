@@ -1,6 +1,7 @@
 import "server-only";
 import {requireEnv} from "@/lib/env";
 import {getClinicSettings} from "@/lib/models/ClinicSettings";
+import {serverBrand} from "@/lib/brand.server";
 import {readEntityActive, readOperatorWhitelisted} from "@/lib/chainRead";
 
 export type PreflightResult =
@@ -24,8 +25,9 @@ export async function preflightIssuance(operatorAddress: `0x${string}`): Promise
   }
 
   const settings = await getClinicSettings();
+  const {org} = serverBrand();
   if (!settings.cloneAddress || !settings.entityAccount) {
-    return {ok: false, message: "This clinic has not completed setup. Discover and save your clone first."};
+    return {ok: false, message: `This ${org} has not completed setup. Discover and save your clone first.`};
   }
   const cloneAddress = settings.cloneAddress as `0x${string}`;
   const entityAccount = settings.entityAccount as `0x${string}`;
@@ -38,14 +40,14 @@ export async function preflightIssuance(operatorAddress: `0x${string}`): Promise
       readOperatorWhitelisted(cloneAddress, operatorAddress),
     ]);
   } catch {
-    return {ok: false, message: "Could not reach the chain to verify clinic status. Try again shortly."};
+    return {ok: false, message: `Could not reach the chain to verify ${org} status. Try again shortly.`};
   }
 
   if (!entityActive) {
     return {ok: false, message: "This entity is not active in the registry. Contact the DogTag admin."};
   }
   if (!operatorWhitelisted) {
-    return {ok: false, message: "Your connected wallet is not a whitelisted operator on this clinic's clone."};
+    return {ok: false, message: `Your connected wallet is not a whitelisted operator on this ${org}'s clone.`};
   }
 
   return {ok: true, cloneAddress, entityAccount};

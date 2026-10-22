@@ -5,6 +5,7 @@ import {AddSecondaryOwnerAction} from "@/components/pets/AddSecondaryOwnerAction
 import {RevokeSecondaryOwnerAction} from "@/components/pets/RevokeSecondaryOwnerAction";
 import {formatUnixSeconds} from "@/lib/format";
 import type {DisplaySecondaryOwnerRow, OwnersCardData} from "@/lib/delegation/ownersCardData";
+import {serverBrand} from "@/lib/brand.server";
 
 const STATUS_BADGE: Record<DisplaySecondaryOwnerRow["status"], {tone: "ok" | "danger" | "warn"; label: string}> = {
   active: {tone: "ok", label: "Active"},
@@ -38,6 +39,7 @@ export function OwnersCard({
   canManage: boolean;
   timeZone: string;
 }) {
+  const {org} = serverBrand();
   const hasTag = Boolean(dogTagIdField);
 
   return (
@@ -59,7 +61,7 @@ export function OwnersCard({
 
       {!data.chainVerified && (
         <Banner tone="warn" title="Could not verify current secondary owners">
-          <p>The chain could not be reached just now - the statuses below reflect this clinic&apos;s own last-known records and are marked unverified.</p>
+          <p>The chain could not be reached just now - the statuses below reflect this {org}&apos;s own last-known records and are marked unverified.</p>
         </Banner>
       )}
 
@@ -86,7 +88,7 @@ export function OwnersCard({
               <li key={row.commitment} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border p-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-body font-medium text-ink">{row.clientName ?? "Added at another clinic"}</span>
+                    <span className="text-body font-medium text-ink">{row.clientName ?? `Added by another ${org}`}</span>
                     <StatusBadge tone={badge.tone} label={badge.label} />
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-faint">

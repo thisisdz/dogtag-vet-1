@@ -6,12 +6,14 @@ import {connectToDatabase} from "@/lib/db";
 import {getBookingSettings} from "@/lib/models/Availability";
 import {VerifySession, type VerifySessionDoc} from "@/lib/models/VerifySession";
 import {toPlain} from "@/lib/toPlain";
+import {serverBrand} from "@/lib/brand.server";
 
 /** `/verifications` - v1 VerificationLog vocabulary: disclosed keyPaths never values, never a
  * subject wallet (wp4-vet.md). `VerifySessionDoc` never stores a subject/owner wallet address at
  * all, so there is nothing to accidentally render here even if a future field is added carelessly
  * elsewhere - only `relayerAddress` (the vet-side actor) and `disclosedKeyPaths` are shown. */
 export default async function Page() {
+  const {org} = serverBrand();
   await connectToDatabase();
   const [sessions, bookingSettings] = await Promise.all([
     VerifySession.find({status: "recorded"}).sort({updatedAt: -1}).limit(200).lean<VerifySessionDoc[]>().then(toPlain),
@@ -21,7 +23,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageHeader title="Verification history" description="Recorded consent verifications for this clinic." />
+      <PageHeader title="Verification history" description={`Recorded consent verifications for this ${org}.`} />
       <DataTable
         columns={[
           {

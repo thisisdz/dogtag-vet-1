@@ -12,6 +12,7 @@ import {isVetOrOwner} from "@/lib/staffRoleTone";
 import {TagsTable} from "@/app/(app)/tags/TagsTable";
 import {ImportTagSection} from "@/app/(app)/tags/ImportTagSection";
 import {VetWalletStatusBanner} from "@/app/(app)/tags/VetWalletStatusBanner";
+import {serverBrand} from "@/lib/brand.server";
 
 /** DogTag issuance surface - WP4.7 A2: gated to `vet`/`owner` (the app-side half of D4's gate;
  * the chain's own operator whitelist is the real authority, see `requireVetSession`'s doc
@@ -19,6 +20,7 @@ import {VetWalletStatusBanner} from "@/app/(app)/tags/VetWalletStatusBanner";
  * notice rather than a bare 403 - the sidebar also hides this whole nav group for them
  * (`Sidebar.tsx`), so reaching this URL at all means a stale link or a manual visit. */
 export default async function Page() {
+  const {org} = serverBrand();
   const session = await auth();
   if (!isVetOrOwner(session?.user?.role)) {
     redirect("/dashboard?notice=vet-required");
@@ -42,7 +44,7 @@ export default async function Page() {
     <>
       <PageHeader
         title="Tags"
-        description="Every issued DogTag, reconciled from this clinic's clone."
+        description={`Every issued DogTag, reconciled from this ${org}'s clone.`}
         action={
           <Link href="/tags/issue">
             <Button>Issue tag</Button>

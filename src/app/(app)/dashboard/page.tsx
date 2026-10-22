@@ -23,6 +23,7 @@ import {Appointment, type AppointmentDoc} from "@/lib/models/Appointment";
 import {Payment, type PaymentDoc} from "@/lib/models/Payment";
 import {ChainActivity, type ChainActivityDoc} from "@/lib/models/ChainActivity";
 import {reasonCodeLabel} from "@/lib/reasonCodes";
+import {serverBrand} from "@/lib/brand.server";
 
 function StatTile({label, value, hint, href}: {label: string; value: string; hint?: string; href?: string}) {
   const content = (
@@ -44,6 +45,7 @@ function StatTile({label, value, hint, href}: {label: string; value: string; hin
  * `Timeline`), not a bespoke widget set.
  */
 export default async function DashboardPage({searchParams}: {searchParams: Promise<{notice?: string}>}) {
+  const {org} = serverBrand();
   // DogTag's manual-verification deployment opens on its queue. Only for vet/owner sessions: the
   // queue sends anyone else back here with a notice, so redirecting them too would loop.
   if (getServerEnv().DOGTAG_APP_MODE === "manual_verification" && isVetOrOwner((await auth())?.user?.role)) {
@@ -145,7 +147,7 @@ export default async function DashboardPage({searchParams}: {searchParams: Promi
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Your clinic's DogTag deployment at a glance." />
+      <PageHeader title="Dashboard" description={`Your ${org}'s DogTag deployment at a glance.`} />
       {notice === "vet-required" && (
         // WP4.7 A2: `/tags` and `/tags/issue` redirect here rather than a bare 403 - see those
         // pages' own doc comments. No `dismissKey` - this is a one-time redirect notice, not a
@@ -169,7 +171,7 @@ export default async function DashboardPage({searchParams}: {searchParams: Promi
             </Link>
           }
         >
-          Connect a wallet and discover this clinic&apos;s VetIssuer clone to start issuing tags.
+          Connect a wallet and discover this {org}&apos;s VetIssuer clone to start issuing tags.
         </Banner>
       )}
       <div className="mt-6">{content}</div>

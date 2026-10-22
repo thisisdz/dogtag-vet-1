@@ -3,6 +3,8 @@ import type {ReactNode} from "react";
 import {Inter, JetBrains_Mono, Nunito} from "next/font/google";
 import {Providers} from "@/components/Providers";
 import {PublicConfigInitScript} from "@/components/PublicConfigInitScript";
+import {BrandProvider} from "@/components/BrandProvider";
+import {serverBrand} from "@/lib/brand.server";
 import "@/app/globals.css";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-inter", display: "swap"});
@@ -10,10 +12,10 @@ const inter = Inter({subsets: ["latin"], variable: "--font-inter", display: "swa
 const nunito = Nunito({subsets: ["latin"], variable: "--font-nunito", display: "swap", weight: ["600", "700", "800"]});
 const jetbrainsMono = JetBrains_Mono({subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap"});
 
-export const metadata: Metadata = {
-  title: "DogTag Vet",
-  description: "DogTag vet platform: clients, pets, tags, appointments, payments.",
-};
+export function generateMetadata(): Metadata {
+  const brand = serverBrand();
+  return {title: brand.product, description: brand.description};
+}
 
 export const viewport: Viewport = {
   // Porcelain - matches --bg in globals.css (mobile browser chrome cannot read CSS variables).
@@ -35,7 +37,9 @@ export default function RootLayout({children}: {children: ReactNode}) {
         <PublicConfigInitScript />
       </head>
       <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable} font-sans`} suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <BrandProvider mode={serverBrand().mode}>
+          <Providers>{children}</Providers>
+        </BrandProvider>
       </body>
     </html>
   );

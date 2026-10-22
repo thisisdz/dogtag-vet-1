@@ -40,6 +40,8 @@ export async function buildClaimEmail(input: ClaimEmailInput): Promise<SendMailP
     "On a computer? Scan the QR code in this email with your phone instead.",
     "",
     `This link works until ${expires}. If it expires, reply to this email and we'll send a new one.`,
+    "",
+    "DogTag Verify",
   ].join("\n");
 
   const qrPng = await QRCode.toBuffer(input.claimUrl, {margin: 2, width: 320, color: {dark: "#1E1A19", light: "#FFFFFF"}});
@@ -58,6 +60,7 @@ export async function buildClaimEmail(input: ClaimEmailInput): Promise<SendMailP
 <p style="margin:0 0 20px" align="center"><img src="cid:${QR_CID}" width="200" height="200" alt="QR code for the same link"></p>
 <p style="margin:0;font-size:13px;line-height:1.5;color:#625855">This link works until ${escapeHtml(expires)}. If it expires, reply to this email and we'll send a new one.</p>
 </td></tr></table>
+<p style="margin:16px 0 0;font-size:12px;color:#625855" align="center">DogTag Verify &middot; verify.dogtagapp.com</p>
 </td></tr></table>
 </body></html>`;
 

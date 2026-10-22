@@ -13,8 +13,10 @@ import {useSnackbar} from "@/components/ui/Snackbar";
 import {entityRegistryAbi, vetIssuerAbi, vetIssuerFactoryAbi} from "@/lib/abi";
 import {roax} from "@/lib/chains";
 import {usePublicEnv} from "@/lib/usePublicEnv";
+import {useBrand} from "@/components/BrandProvider";
 
 export function SetupWizard() {
+  const {org} = useBrand();
   // usePublicEnv(), not the bare `publicEnv` module export: this component's very first return
   // branches on `factoryAddress` (the "Protocol addresses are not configured" banner below), so a
   // plain module-scope read would be a real hydration mismatch the first time a deployment's
@@ -157,7 +159,7 @@ export function SetupWizard() {
   return (
     <div className="max-w-2xl space-y-6">
       {!isConnected && (
-        <FormSection title="1. Connect wallet" helperText="Connect the wallet you use to operate this clinic's clone.">
+        <FormSection title="1. Connect wallet" helperText={`Connect the wallet you use to operate this ${org}'s clone.`}>
           <Button
             onClick={() => {
               const connector = connectors[0];
@@ -183,7 +185,7 @@ export function SetupWizard() {
 
       {isConnected && !wrongNetwork && (
         <>
-          <FormSection title="2. Discover this clinic's clone" helperText="Auto-discovered from your connected wallet, or looked up by entity account.">
+          <FormSection title={`2. Discover this ${org}'s clone`} helperText="Auto-discovered from your connected wallet, or looked up by entity account.">
             <div className="flex items-center gap-2">
               <span className="text-body text-ink-muted">Connected wallet</span>
               <AddressChip address={address as `0x${string}`} chain="roax" />
@@ -192,7 +194,7 @@ export function SetupWizard() {
               <FormField
                 label="Entity account"
                 htmlFor="entity-account"
-                helperText="Enter the clinic entity's account address if your connected wallet is an operator wallet, not the entity account itself."
+                helperText={`Enter the ${org} entity's account address if your connected wallet is an operator wallet, not the entity account itself.`}
               >
                 <div className="flex gap-2">
                   <Input

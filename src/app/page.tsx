@@ -1,19 +1,20 @@
 import Link from "next/link";
 import {BrandLockup} from "@/components/brand/BrandLockup";
-import {getServerEnv} from "@/lib/env";
+import {serverBrand} from "@/lib/brand.server";
 
 export default function LandingPage() {
-  const manualVerification = getServerEnv().DOGTAG_APP_MODE === "manual_verification";
+  const brand = serverBrand();
+  const manualVerification = brand.mode === "manual_verification";
 
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="glass flex items-center justify-between border-x-0 border-t-0 px-6 py-3">
-        <BrandLockup height={28} showProduct={!manualVerification} />
+        <BrandLockup height={28} />
       </header>
       <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center">
         {manualVerification ? (
           <>
-            <h1 className="text-hero text-ink">DogTag Verify</h1>
+            <h1 className="text-hero text-ink">{brand.product}</h1>
             <p className="max-w-xl text-body text-ink-muted">
               DogTag&apos;s own verification desk: owners send vaccination records and DogTag requests from the DogTag app, and
               DogTag reviews and issues them.

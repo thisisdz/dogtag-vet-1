@@ -8,7 +8,7 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export type AppMode = "clinic" | "manual_verification";
+export type {AppMode} from "@/lib/brand";
 
 /**
  * The menu for DogTag's own manual-verification deployment (DOGTAG_APP_MODE=manual_verification):

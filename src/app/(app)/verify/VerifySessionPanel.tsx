@@ -17,6 +17,7 @@ import {decodeRefundOutcome, refundFeedbackMessage, type RefundOutcome} from "@/
 import {verifySessionStatusLabel, verifySessionStatusTone} from "@/lib/verifySessionTone";
 import type {PetDoc} from "@/lib/models/Pet";
 import type {VerifySessionStatus} from "@/lib/models/VerifySession";
+import {useBrand} from "@/components/BrandProvider";
 
 interface SessionState {
   sessionId: string;
@@ -62,6 +63,7 @@ export function VerifySessionPanel({
   cloneAddress?: string;
   consentRelayerViaCloneEnabled: boolean;
 }) {
+  const {org} = useBrand();
   const {address, chainId} = useAccount();
   const {writeContractAsync} = useWriteContract();
   const publicClient = usePublicClient();
@@ -223,7 +225,7 @@ export function VerifySessionPanel({
           if (viaCloneRef.current && receipt.data && cloneAddress) {
             const outcome = decodeRefundOutcome(receipt.data.logs, cloneAddress);
             setRefundOutcome(outcome);
-            snackbar.show(`Verification recorded on chain. ${refundFeedbackMessage(outcome)}`, "ok");
+            snackbar.show(`Verification recorded on chain. ${refundFeedbackMessage(outcome, org)}`, "ok");
           } else {
             snackbar.show("Verification recorded on chain", "ok");
           }
@@ -272,7 +274,7 @@ export function VerifySessionPanel({
           {session.status === "recorded" && (
             <div className="mt-4 space-y-1">
               <p className="text-body text-ok">Consent recorded. Nullifier: {session.nullifier}</p>
-              {refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome)}</p>}
+              {refundOutcome && <p className="text-caption text-ink-muted">{refundFeedbackMessage(refundOutcome, org)}</p>}
             </div>
           )}
         </FormSection>
@@ -330,7 +332,7 @@ export function VerifySessionPanel({
         </FormField>
         {cloneAddress && (
           <FormField
-            label="Use this clinic's clone as the relayer"
+            label={`Use this ${org}'s clone as the relayer`}
             htmlFor="use-clone-relayer"
             helperText="Experimental (WP4.15) - needs the DogTag admin to separately whitelist this clone for canVerify. Off uses your connected wallet as the relayer, as before."
           >
