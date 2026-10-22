@@ -62,6 +62,13 @@ curl https://verify.dogtagapp.com/api/healthz      # {"status":"ok","mongo":{"co
 npx wrangler tail                                   # live logs
 ```
 
+## Shipping new app code
+
+`npx wrangler deploy` uploads the new images, but the always-on containers keep running the old
+image until they restart. Bump `CONFIG_REVISION` in the same deploy (or right after) so the cron
+restarts both onto the new image within a minute; the site is briefly unavailable (503) while the
+web container starts.
+
 ## Changing a secret
 
 Containers read settings only when they start, and `wrangler secret put` restarts nothing. After
