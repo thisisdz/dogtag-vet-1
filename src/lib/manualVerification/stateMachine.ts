@@ -68,6 +68,15 @@ export function isTerminal(kind: ManualVerificationKind, status: ManualVerificat
   return MANUAL_VERIFICATION_STATUSES.every((to) => !canTransition(kind, status, to));
 }
 
+/** MongoDB filter for the queue's default "needs me" view: everything `waitingOn` attributes to the
+ * reviewer, including an approved vaccination (Dom still has to sign `issueRecord`). */
+export const NEEDS_REVIEWER_FILTER = {
+  $or: [
+    {status: {$in: ["submitted", "in_review", "bound", "needs_attention"]}},
+    {kind: "vaccination", status: "approved"},
+  ],
+} as const;
+
 /** Statuses an owner may still withdraw from. */
 export function isCancellableByOwner(status: ManualVerificationStatus): boolean {
   return status === "submitted" || status === "in_review";

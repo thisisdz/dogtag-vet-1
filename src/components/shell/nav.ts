@@ -26,6 +26,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "DogTag",
     items: [
+      {href: "/manual-verification", label: "Manual verification"},
       {href: "/tags", label: "Tags"},
       {href: "/tags/issue", label: "Issue tag"},
       {href: "/verify", label: "Verify"},

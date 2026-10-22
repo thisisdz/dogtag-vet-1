@@ -42,8 +42,28 @@ const initialForm = {
  * record carries no owner-control leaves to bind - the server computes the full leaf set and root
  * SYNCHRONOUSLY from this form), so the flow is just create (draft) -> issue on chain -> confirm ->
  * optionally sign the C3 attestation, with no polling loop for a second device to catch up to.
+ *
+ * Also embedded by DogTag's manual verification review page: with `manualVerification`, "create
+ * draft" becomes "approve" - it posts the reviewer-confirmed fields to that request's approve route
+ * (which builds the draft without an `authorizedVet` leaf) instead of the pet's records route.
+ * `initialRecord` resumes an already-drafted record. Everything from the draft onward (issue on
+ * chain, confirm, attestation) is identical for both tracks.
  */
-export function IssueRecordForm({petId, onDone}: {petId: string; onDone: () => void}) {
+export function IssueRecordForm({
+  petId,
+  onDone,
+  manualVerification,
+  initialRecord,
+}: {
+  petId: string;
+  onDone: () => void;
+  manualVerification?: {
+    requestId: string;
+    certificate?: {vetClinicName?: string; vetName?: string; microchipOnCert?: string};
+    onApproved?: () => void;
+  };
+  initialRecord?: RecordArtifactDoc;
+}) {
   const {address, isConnected, chainId} = useAccount();
   const {switchChain} = useSwitchChain();
   const {writeContractAsync} = useWriteContract();
@@ -54,7 +74,7 @@ export function IssueRecordForm({petId, onDone}: {petId: string; onDone: () => v
   const [form, setForm] = useState(initialForm);
   const [conformsTo, setConformsTo] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
-  const [record, setRecord] = useState<RecordArtifactDoc | null>(null);
+  const [record, setRecord] = useState<RecordArtifactDoc | null>(initialRecord ?? null);
   const [issuing, setIssuing] = useState(false);
   const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined);
   const [confirming, setConfirming] = useState(false);
@@ -86,10 +106,14 @@ export function IssueRecordForm({petId, onDone}: {petId: string; onDone: () => v
     }
     setCreating(true);
     try {
-      const res = await fetch(`/api/pets/${petId}/records`, {
+      const url = manualVerification
+        ? `/api/manual-verification/${manualVerification.requestId}/approve`
+        : `/api/pets/${petId}/records`;
+      const res = await fetch(url, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
+          ...(manualVerification?.certificate ? {certificate: manualVerification.certificate} : {}),
           operatorAddress: address,
           form: {
             ...form,
@@ -111,6 +135,7 @@ export function IssueRecordForm({petId, onDone}: {petId: string; onDone: () => v
         return;
       }
       setRecord(body.record);
+      manualVerification?.onApproved?.();
     } finally {
       setCreating(false);
     }
@@ -402,7 +427,7 @@ export function IssueRecordForm({petId, onDone}: {petId: string; onDone: () => v
           onClick={handleCreate}
           disabled={creating || !form.targetDisease || !form.vaccineProductName || !form.vaccineManufacturer || !form.batchLotNumber || !form.vaccinationDate || !form.validFrom || !form.validUntil}
         >
-          {creating ? "Creating..." : "Create draft"}
+          {creating ? "Creating..." : manualVerification ? "Approve and create draft" : "Create draft"}
         </Button>
       </div>
     </FormSection>
