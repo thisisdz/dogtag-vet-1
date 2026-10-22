@@ -72,9 +72,20 @@ function appEnv(env: Env): Record<string, string> {
  * timer fires anyway we deliberately do NOT stop (overriding the default, which would). A crashed
  * process simply exits; the next request or cron tick starts it again.
  */
+/** The constructor context type exactly as `Container` declares it. */
+type ContainerCtx = ConstructorParameters<typeof Container<Env>>[0];
+
 abstract class AlwaysOnContainer extends Container<Env> {
   sleepAfter = "30m";
   enableInternet = true; // MongoDB Atlas, the ROAX RPC and SMTP are all outside Cloudflare
+
+  /** The environment variables this container starts with. */
+  protected abstract containerEnv(env: Env): Record<string, string>;
+
+  constructor(ctx: ContainerCtx, env: Env) {
+    super(ctx, env);
+    this.envVars = this.containerEnv(env);
+  }
 
   override async onActivityExpired(): Promise<void> {
     // Stay running - see class comment.
@@ -84,14 +95,19 @@ abstract class AlwaysOnContainer extends Container<Env> {
    * Containers read their settings only when they start, and changing a secret restarts nothing.
    * After changing secrets, bump CONFIG_REVISION in wrangler.jsonc and deploy: the next cron tick
    * sees a revision this instance hasn't applied yet and stops the container once, so the next
-   * request starts it again with the current settings.
+   * request starts it again with the current settings. The revision is recorded only AFTER a
+   * successful stop, so a failed stop is retried on the next tick.
    */
-  async applyConfigRevision(revision: string): Promise<boolean> {
-    if ((await this.ctx.storage.get<string>("configRevision")) === revision) return false;
+  async applyConfigRevision(revision: string): Promise<string> {
+    if ((await this.ctx.storage.get<string>("configRevision")) === revision) return "unchanged";
+    this.envVars = this.containerEnv(this.env);
+    try {
+      await this.stop();
+    } catch (err) {
+      return `stop failed, will retry: ${String(err)}`;
+    }
     await this.ctx.storage.put("configRevision", revision);
-    await this.stop();
-    console.log(`[${this.constructor.name}] restarted for config revision ${revision}`);
-    return true;
+    return `restarted for config revision ${revision}`;
   }
 
   override onError(error: unknown): void {
@@ -99,24 +115,19 @@ abstract class AlwaysOnContainer extends Container<Env> {
   }
 }
 
-/** The constructor context type exactly as `Container` declares it. */
-type ContainerCtx = ConstructorParameters<typeof Container<Env>>[0];
-
 export class WebContainer extends AlwaysOnContainer {
   defaultPort = 3000;
 
-  constructor(ctx: ContainerCtx, env: Env) {
-    super(ctx, env);
-    this.envVars = {...appEnv(env), PORT: "3000", HOSTNAME: "0.0.0.0"};
+  protected containerEnv(env: Env): Record<string, string> {
+    return {...appEnv(env), PORT: "3000", HOSTNAME: "0.0.0.0"};
   }
 }
 
 export class JobsContainer extends AlwaysOnContainer {
   defaultPort = 8091;
 
-  constructor(ctx: ContainerCtx, env: Env) {
-    super(ctx, env);
-    this.envVars = {...appEnv(env), WORKER_HEALTH_PORT: "8091"};
+  protected containerEnv(env: Env): Record<string, string> {
+    return {...appEnv(env), WORKER_HEALTH_PORT: "8091"};
   }
 }
 
@@ -139,12 +150,27 @@ export default {
    * jobs container running once enabled. Failures are logged for Workers Logs alerts. */
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     const revision = typeof env.CONFIG_REVISION === "string" ? env.CONFIG_REVISION : "1";
-    ctx.waitUntil(web(env).applyConfigRevision(revision).then(() => ping("web", web(env), "http://web/api/healthz")));
-    if (env.JOBS_ENABLED === "true") {
-      ctx.waitUntil(jobs(env).applyConfigRevision(revision).then(() => ping("jobs", jobs(env), "http://jobs/livez")));
-    }
+    ctx.waitUntil(keepUp("web", web(env), revision, "http://web/api/healthz"));
+    if (env.JOBS_ENABLED === "true") ctx.waitUntil(keepUp("jobs", jobs(env), revision, "http://jobs/livez"));
   },
 };
+
+/** Apply any pending config revision (logged here, in the Worker, where `wrangler tail` sees it),
+ * then health-ping the container - which also starts it if it is stopped. */
+async function keepUp(
+  name: string,
+  stub: {applyConfigRevision(revision: string): Promise<string>; fetch(request: Request): Promise<Response>},
+  revision: string,
+  healthUrl: string,
+): Promise<void> {
+  try {
+    const result = await stub.applyConfigRevision(revision);
+    if (result !== "unchanged") console.log(`[cron] ${name}: ${result}`);
+  } catch (err) {
+    console.error(`[cron] ${name}: config revision check failed`, err);
+  }
+  await ping(name, stub, healthUrl);
+}
 
 async function ping(name: string, stub: {fetch(request: Request): Promise<Response>}, url: string): Promise<void> {
   try {
