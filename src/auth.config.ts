@@ -44,6 +44,9 @@ export const authConfig = {
         "/booking/",
         "/profiles/",
         "/api/calendar/feed/",
+        // Manual verification claim links emailed to pet owners (no staff session; opening the
+        // page grants nothing - the DogTag app redeems it via /v1/).
+        "/claim/",
       ];
       // Exact-match public pages that must NOT also make a same-prefixed staff route public -
       // `startsWith` alone would make `/book` also cover a future `/bookkeeping` or similar.

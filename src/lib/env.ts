@@ -156,6 +156,11 @@ const envSchema = z.object({
   // M0 holds 512 MB in total, so the default leaves room for everything else).
   MANUAL_VERIFICATION_CLAIM_TTL_DAYS: z.coerce.number().int().positive().default(7),
   MANUAL_VERIFICATION_STORAGE_QUOTA_MB: z.coerce.number().positive().default(250),
+  // How the claim page hands off to the DogTag mobile app (values from the app team): the app's
+  // custom URL scheme (`<scheme>://claim/<token>`) and optional store links for owners without it.
+  DOGTAG_APP_URL_SCHEME: z.string().regex(/^[a-z][a-z0-9+.-]*$/).default("dogtag"),
+  DOGTAG_APP_STORE_URL: z.string().url().optional(),
+  DOGTAG_PLAY_STORE_URL: z.string().url().optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

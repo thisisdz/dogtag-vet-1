@@ -63,7 +63,10 @@ const EVENT_LABELS: Record<string, string> = {
   cancelled: "Cancelled by the owner",
   record_confirmed_on_chain: "Record confirmed on chain",
   record_issuance_error: "On-chain issuance failed",
-  claim_resent: "Claim link re-sent",
+  claim_issued: "Claim link sent to the owner",
+  claim_resent: "New claim link sent",
+  claim_email_not_sent: "Claim email not delivered",
+  claimed: "Owner added it to the DogTag app",
 };
 
 /** Audit-trail wording for one event. */

@@ -159,10 +159,8 @@ export function RequestReview({
             <IssueRecordForm petId={pet.petId} onDone={() => router.refresh()} initialRecord={record} />
           )}
 
-          {request.status === "issued" && request.kind === "vaccination" && (
-            <Banner tone="ok" title="Issued on chain">
-              The owner can now receive this record in the DogTag app.
-            </Banner>
+          {request.kind === "vaccination" && (request.status === "issued" || request.status === "claimed") && (
+            <ClaimPanel request={request} />
           )}
 
           {REJECTABLE.has(request.status) && (
@@ -214,6 +212,74 @@ export function RequestReview({
         />
       </section>
     </div>
+  );
+}
+
+/**
+ * The owner's claim link: when it was sent, when it expires, whether the app has used it, and a
+ * re-send that issues a fresh link (the old one stops working). A fresh link is shown here once so
+ * it can be copied into a message by hand - the server never stores it in readable form.
+ */
+function ClaimPanel({request}: {request: ManualVerificationRequestDoc}) {
+  const router = useRouter();
+  const snackbar = useSnackbar();
+  const [busy, setBusy] = useState(false);
+  const [fresh, setFresh] = useState<{url: string; email: string} | null>(null);
+  const claim = request.claim;
+  const fmt = (d: Date | string | number) => new Date(d).toLocaleString(undefined, {dateStyle: "medium", timeStyle: "short"});
+
+  async function resend() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/manual-verification/${request.requestId}/resend-claim`, {method: "POST"});
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        snackbar.show(body?.error?.message ?? "Could not send a new link", "danger");
+        return;
+      }
+      setFresh({url: body.url, email: body.email});
+      snackbar.show(body.email === "sent" ? "New link emailed to the owner" : "New link created - copy it below", body.email === "failed" ? "danger" : "ok");
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <FormSection title="Owner's claim link" helperText="Emailed to the owner as a link and a QR code; it opens the DogTag app.">
+      {claim ? (
+        <KeyValuePanel
+          rows={[
+            {key: "sent", label: "Emailed", value: claim.sentAt ? fmt(claim.sentAt) : "Not sent - copy a new link instead"},
+            {key: "exp", label: "Expires", value: fmt(claim.exp * 1000)},
+            {key: "used", label: "Opened in the app", value: claim.redeemCount > 0 ? `${claim.redeemCount} time(s), first ${fmt(claim.firstRedeemedAt!)}` : "Not yet"},
+          ]}
+        />
+      ) : (
+        <p className="text-body text-ink-muted">No link has been sent yet.</p>
+      )}
+      {fresh && (
+        <div className="space-y-2">
+          {fresh.email !== "sent" && (
+            <Banner tone="warn" title={fresh.email === "logged" ? "Email isn't set up yet" : "The email failed to send"}>
+              Copy this link and send it to the owner yourself.
+            </Banner>
+          )}
+          <div className="flex gap-2">
+            <Input readOnly value={fresh.url} aria-label="Claim link" onFocus={(e) => e.currentTarget.select()} />
+            <Button
+              variant="secondary"
+              onClick={() => navigator.clipboard.writeText(fresh.url).then(() => snackbar.show("Link copied", "ok"))}
+            >
+              Copy
+            </Button>
+          </div>
+        </div>
+      )}
+      <Button variant="secondary" onClick={resend} disabled={busy}>
+        {busy ? "Sending..." : claim ? "Send a new link" : "Send link"}
+      </Button>
+    </FormSection>
   );
 }
 

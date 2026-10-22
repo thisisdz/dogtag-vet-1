@@ -165,7 +165,17 @@ describe("manual verification - vaccination flow", () => {
     await RecordArtifact.updateOne({recordId: approved.vaccination.recordId}, {$set: {status: "active"}});
     const synced = (await (await detailGET(new Request(`${base}/${requestId}`), params(requestId))).json()).request;
     expect(synced.status).toBe("issued");
-    expect(synced.events.map((e: {action: string}) => e.action)).toEqual(["submitted", "review_started", "approved", "record_confirmed_on_chain"]);
+    // Issuing also sends the owner a claim link; with no SMTP configured the email is only logged,
+    // and the history says so (the reviewer then copies a link instead).
+    expect(synced.events.map((e: {action: string}) => e.action)).toEqual([
+      "submitted",
+      "review_started",
+      "approved",
+      "record_confirmed_on_chain",
+      "claim_issued",
+      "claim_email_not_sent",
+    ]);
+    expect(synced.claim.tokenHash).toMatch(/^[0-9a-f]{64}$/);
 
     // Issued is waiting on the owner to claim, not on the reviewer.
     expect((await (await listGET(new Request(base))).json()).requests).toHaveLength(0);

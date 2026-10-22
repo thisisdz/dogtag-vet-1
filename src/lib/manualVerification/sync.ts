@@ -1,6 +1,7 @@
 import {RecordArtifact, type RecordArtifactDoc} from "@/lib/models/RecordArtifact";
-import type {ManualVerificationRequestDoc} from "@/lib/models/ManualVerificationRequest";
+import {ManualVerificationRequest, type ManualVerificationRequestDoc} from "@/lib/models/ManualVerificationRequest";
 import {transitionRequest} from "@/lib/manualVerification/transition";
+import {issueAndSendClaim} from "@/lib/manualVerification/claims";
 
 /**
  * Brings a request's status in line with the on-chain artifact it is waiting on. The existing
@@ -9,7 +10,8 @@ import {transitionRequest} from "@/lib/manualVerification/transition";
  * status poll, so it must be cheap and idempotent.
  *
  * Vaccination: the linked RecordArtifact going `active` means Dom's `issueRecord` confirmed ->
- * request `issued`; `error` -> `needs_attention`. (DogTag syncing is added with the DogTag flow.)
+ * request `issued`, and the owner is emailed a claim link; `error` -> `needs_attention`.
+ * (DogTag syncing is added with the DogTag flow.)
  */
 export async function syncRequest(request: ManualVerificationRequestDoc): Promise<ManualVerificationRequestDoc> {
   if (request.kind === "vaccination") return syncVaccination(request);
@@ -31,7 +33,11 @@ async function syncVaccination(request: ManualVerificationRequestDoc): Promise<M
       action: "record_confirmed_on_chain",
       set: {issuedAt: new Date()},
     });
-    return result.ok ? result.request : request;
+    if (!result.ok) return request;
+    // Only the call that won the transition sends the owner their claim link, so concurrent syncs
+    // never email twice.
+    if (!result.request.claim) await issueAndSendClaim(result.request, {type: "system"});
+    return (await ManualVerificationRequest.findOne({requestId: request.requestId}).lean<ManualVerificationRequestDoc>()) ?? result.request;
   }
   if (record.status === "error" && request.status === "approved") {
     const result = await transitionRequest({
