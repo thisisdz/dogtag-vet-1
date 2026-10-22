@@ -60,8 +60,12 @@
     "DELEGATION_REGISTRY_ADDRESS": "0xe60d2fc8ebaecfef945751dfdc32d393e2afd2d7",
     "ADMIN_PORTAL_URL": "https://dogtag-admin.roax.net",
     "DOGTAG_APP_URL_SCHEME": "dogtag",
-    // Off until this deployment's database is the only one being followed (see README step 6).
-    "JOBS_ENABLED": "false"
+    // The background worker. Safe because this deployment owns its database (dogtag-verify); never
+    // point two jobs workers at the same database (see README).
+    "JOBS_ENABLED": "true",
+    // Containers only read secrets when they start. After `wrangler secret put`, bump this and
+    // deploy: each container restarts once (within a minute) with the new values.
+    "CONFIG_REVISION": "2"
   },
 
   // Set once with `npx wrangler secret put <NAME>` - never committed. Deploy fails if missing.

@@ -19,6 +19,8 @@ interface Env {
   JOBS: DurableObjectNamespace<JobsContainer>;
   /** "true" once this deployment's database is the only one the jobs worker should follow. */
   JOBS_ENABLED?: string;
+  /** Bump after changing secrets so both containers restart once with the new values. */
+  CONFIG_REVISION?: string;
   [key: string]: unknown;
 }
 
@@ -78,6 +80,20 @@ abstract class AlwaysOnContainer extends Container<Env> {
     // Stay running - see class comment.
   }
 
+  /**
+   * Containers read their settings only when they start, and changing a secret restarts nothing.
+   * After changing secrets, bump CONFIG_REVISION in wrangler.jsonc and deploy: the next cron tick
+   * sees a revision this instance hasn't applied yet and stops the container once, so the next
+   * request starts it again with the current settings.
+   */
+  async applyConfigRevision(revision: string): Promise<boolean> {
+    if ((await this.ctx.storage.get<string>("configRevision")) === revision) return false;
+    await this.ctx.storage.put("configRevision", revision);
+    await this.stop();
+    console.log(`[${this.constructor.name}] restarted for config revision ${revision}`);
+    return true;
+  }
+
   override onError(error: unknown): void {
     console.error(`[${this.constructor.name}] container error`, error);
   }
@@ -122,8 +138,11 @@ export default {
   /** Every minute: keep the web container warm (and start it again after a host restart), and the
    * jobs container running once enabled. Failures are logged for Workers Logs alerts. */
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(ping("web", web(env), "http://web/api/healthz"));
-    if (env.JOBS_ENABLED === "true") ctx.waitUntil(ping("jobs", jobs(env), "http://jobs/livez"));
+    const revision = typeof env.CONFIG_REVISION === "string" ? env.CONFIG_REVISION : "1";
+    ctx.waitUntil(web(env).applyConfigRevision(revision).then(() => ping("web", web(env), "http://web/api/healthz")));
+    if (env.JOBS_ENABLED === "true") {
+      ctx.waitUntil(jobs(env).applyConfigRevision(revision).then(() => ping("jobs", jobs(env), "http://jobs/livez")));
+    }
   },
 };
 

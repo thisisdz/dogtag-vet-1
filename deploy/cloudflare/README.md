@@ -62,10 +62,21 @@ curl https://verify.dogtagapp.com/api/healthz      # {"status":"ok","mongo":{"co
 npx wrangler tail                                   # live logs
 ```
 
+## Changing a secret
+
+Containers read settings only when they start, and `wrangler secret put` restarts nothing. After
+changing any secret, bump `CONFIG_REVISION` in `wrangler.jsonc` and run `npx wrangler deploy`
+(seconds - no image rebuild). Within a minute the cron restarts each container once with the new
+values. On Windows PowerShell use `npx.cmd` if script execution is disabled; to avoid typos, pipe a
+value in (`... | npx.cmd wrangler secret put NAME`) rather than pasting it at the prompt.
+
+`/api/healthz` reports `mongo.failure` (`config`, `dns`, `auth`, `network`, `timeout`) when the
+database is unreachable - `config` means the `MONGODB_URI` secret is missing or malformed.
+
 ## Turning on the background worker
 
-`JOBS_ENABLED` starts as `"false"`. Set it to `"true"` in `wrangler.jsonc` and deploy again once
-`dogtag-verify` is the database this deployment owns. Never point two jobs workers at the same
+`JOBS_ENABLED` is `"true"` (enabled 2026-10-22, once `dogtag-verify` became this deployment's own
+database). Its progress shows as `activityCursorBlock` advancing in that database's `clinicsettings`. Never point two jobs workers at the same
 database (e.g. the old PC deployment and this one must use different databases - they do:
 `dogtag-vet` vs `dogtag-verify`).
 
