@@ -15,6 +15,8 @@ const eslintConfig = [
       "protocol/**",
       ".next/**",
       ".next-prod/**",
+      // The Cloudflare deploy Worker is its own project (own package.json/tsconfig/types).
+      "deploy/**",
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",

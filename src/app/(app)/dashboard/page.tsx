@@ -1,5 +1,9 @@
 import Link from "next/link";
+import {redirect} from "next/navigation";
 import type {ReactNode} from "react";
+import {auth} from "@/auth";
+import {getServerEnv} from "@/lib/env";
+import {isVetOrOwner} from "@/lib/staffRoleTone";
 import {PageHeader} from "@/components/shell/PageHeader";
 import {Banner} from "@/components/ui/Banner";
 import {DataTable} from "@/components/ui/DataTable";
@@ -40,6 +44,11 @@ function StatTile({label, value, hint, href}: {label: string; value: string; hin
  * `Timeline`), not a bespoke widget set.
  */
 export default async function DashboardPage({searchParams}: {searchParams: Promise<{notice?: string}>}) {
+  // DogTag's manual-verification deployment opens on its queue. Only for vet/owner sessions: the
+  // queue sends anyone else back here with a notice, so redirecting them too would loop.
+  if (getServerEnv().DOGTAG_APP_MODE === "manual_verification" && isVetOrOwner((await auth())?.user?.role)) {
+    redirect("/manual-verification");
+  }
   const {notice} = await searchParams;
   let cloneConfigured = false;
   let content: ReactNode = null;

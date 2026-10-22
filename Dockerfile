@@ -35,6 +35,10 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+# Next's standalone server.js listens on $HOSTNAME. Docker (and other runtimes, e.g. Cloudflare
+# Containers) set HOSTNAME to the container's own name, which can leave the server unreachable on
+# the container's network interface - bind every interface instead.
+ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 # This app ships no public/ directory (no static assets outside what Next itself generates), so

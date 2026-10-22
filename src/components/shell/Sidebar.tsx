@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {BrandLockup} from "@/components/brand/BrandLockup";
-import {navGroups} from "@/components/shell/nav";
+import {manualVerificationNavGroups, navGroups, type AppMode} from "@/components/shell/nav";
 import type {StaffRole} from "@/lib/models/Staff";
 import {isVetOrOwner} from "@/lib/staffRoleTone";
 
@@ -14,9 +14,10 @@ import {isVetOrOwner} from "@/lib/staffRoleTone";
  * here to stay gated. */
 const VET_ONLY_GROUPS = new Set(["DogTag"]);
 
-export function visibleGroups(role: StaffRole | undefined) {
-  if (isVetOrOwner(role)) return navGroups;
-  return navGroups.filter((group) => !VET_ONLY_GROUPS.has(group.label));
+export function visibleGroups(role: StaffRole | undefined, mode: AppMode = "clinic") {
+  const groups = mode === "manual_verification" ? manualVerificationNavGroups : navGroups;
+  if (isVetOrOwner(role)) return groups;
+  return groups.filter((group) => !VET_ONLY_GROUPS.has(group.label));
 }
 
 /** The single nav item that should render active for `pathname`, or `undefined` off-nav (e.g. a
@@ -27,10 +28,10 @@ export function visibleGroups(role: StaffRole | undefined) {
  * `/tags/issue`, per the round-5 grader finding). Exact-match candidates and prefix-match
  * candidates (`${href}/`) are gathered the same way a plain per-item check would, just compared
  * against each other for specificity before deciding a winner. */
-function findActiveHref(pathname: string | null): string | undefined {
+function findActiveHref(pathname: string | null, groups: typeof navGroups): string | undefined {
   if (pathname === null) return undefined;
   let best: string | undefined;
-  for (const group of navGroups) {
+  for (const group of groups) {
     for (const item of group.items) {
       const matches = pathname === item.href || pathname.startsWith(`${item.href}/`);
       if (matches && (best === undefined || item.href.length > best.length)) {
@@ -41,14 +42,14 @@ function findActiveHref(pathname: string | null): string | undefined {
   return best;
 }
 
-export function Sidebar({role}: {role?: StaffRole}) {
+export function Sidebar({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMode}) {
   const pathname = usePathname();
-  const activeHref = findActiveHref(pathname);
-  const groups = visibleGroups(role);
+  const groups = visibleGroups(role, mode);
+  const activeHref = findActiveHref(pathname, groups);
 
   return (
     <nav className="glass flex h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-y-0 border-l-0 px-3 py-5">
-      <Link href="/dashboard" className="px-2" aria-label="DogTag Vet - dashboard">
+      <Link href="/dashboard" className="px-2" aria-label="DogTag - home">
         <BrandLockup height={26} />
       </Link>
       {groups.map((group) => (

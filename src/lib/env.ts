@@ -159,6 +159,10 @@ const envSchema = z.object({
   // How the claim page hands off to the DogTag mobile app (values from the app team): the app's
   // custom URL scheme (`<scheme>://claim/<token>`) and optional store links for owners without it.
   DOGTAG_APP_URL_SCHEME: z.string().regex(/^[a-z][a-z0-9+.-]*$/).default("dogtag"),
+  // "clinic" (default): the full vet-clinic app. "manual_verification": DogTag's own verification
+  // deployment (verify.dogtagapp.com) - the staff menu is trimmed to manual verification, tags,
+  // records and settings, and the clinic-only public pages (booking) are switched off.
+  DOGTAG_APP_MODE: z.enum(["clinic", "manual_verification"]).default("clinic"),
   DOGTAG_APP_STORE_URL: z.string().url().optional(),
   DOGTAG_PLAY_STORE_URL: z.string().url().optional(),
 });

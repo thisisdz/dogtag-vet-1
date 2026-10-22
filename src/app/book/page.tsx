@@ -1,4 +1,6 @@
+import {notFound} from "next/navigation";
 import {connectToDatabase} from "@/lib/db";
+import {getServerEnv} from "@/lib/env";
 import {Service, type ServiceDoc} from "@/lib/models/Service";
 import {getBookingSettings} from "@/lib/models/Availability";
 import {getClinicSettings} from "@/lib/models/ClinicSettings";
@@ -23,6 +25,8 @@ export const dynamic = "force-dynamic";
  * routes directly for availability and submission.
  */
 export default async function BookPage() {
+  // DogTag's manual-verification deployment is not a clinic - there is nothing to book.
+  if (getServerEnv().DOGTAG_APP_MODE === "manual_verification") notFound();
   await connectToDatabase();
   const [services, bookingSettings, settings] = await Promise.all([
     Service.find({active: true, bookableOnline: true}).sort({name: 1}).lean<ServiceDoc[]>(),

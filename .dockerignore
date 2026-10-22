@@ -9,6 +9,8 @@ node_modules
 protocol/**/node_modules
 
 .next
+.next-prod
+deploy
 .git
 .gitignore
 

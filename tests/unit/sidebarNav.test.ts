@@ -33,3 +33,28 @@ describe("Sidebar.visibleGroups", () => {
     expect(visibleGroups(undefined).some((g) => g.label === "DogTag")).toBe(false);
   });
 });
+
+describe("Sidebar.visibleGroups - manual verification deployment", () => {
+  const hrefs = (groups: ReturnType<typeof visibleGroups>) => groups.flatMap((g) => g.items.map((i) => i.href));
+
+  it("shows the trimmed menu, starting with the manual verification queue", () => {
+    const items = hrefs(visibleGroups("owner", "manual_verification"));
+    expect(items[0]).toBe("/manual-verification");
+    expect(items).toEqual(expect.arrayContaining(["/tags", "/tags/issue", "/clients", "/pets", "/settings"]));
+  });
+
+  it("leaves out the clinic-only sections", () => {
+    const items = hrefs(visibleGroups("owner", "manual_verification"));
+    for (const clinicOnly of ["/calendar", "/appointments", "/services", "/payments", "/accounting"]) {
+      expect(items).not.toContain(clinicOnly);
+    }
+  });
+
+  it("still hides the DogTag group from plain staff", () => {
+    expect(hrefs(visibleGroups("staff", "manual_verification"))).not.toContain("/manual-verification");
+  });
+
+  it("defaults to the full clinic menu", () => {
+    expect(visibleGroups("owner")).toEqual(navGroups);
+  });
+});

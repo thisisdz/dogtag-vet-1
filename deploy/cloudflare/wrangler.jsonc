@@ -1,0 +1,71 @@
+{
+  // DogTag manual verification - https://verify.dogtagapp.com
+  // Deploy from this folder with Docker running:  npx wrangler deploy   (see README.md)
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dogtag-verify",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-21",
+  "observability": {"enabled": true},
+
+  // Served only on the custom domain; wrangler creates the DNS record for it on deploy.
+  "workers_dev": false,
+  "routes": [{"pattern": "verify.dogtagapp.com", "custom_domain": true}],
+
+  "containers": [
+    {
+      "class_name": "WebContainer",
+      "image": "../../Dockerfile",
+      "image_build_context": "../..",
+      "instance_type": "basic",
+      "max_instances": 1
+    },
+    {
+      "class_name": "JobsContainer",
+      "image": "../../Dockerfile.worker",
+      "image_build_context": "../..",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {"name": "WEB", "class_name": "WebContainer"},
+      {"name": "JOBS", "class_name": "JobsContainer"}
+    ]
+  },
+  "exports": {
+    "WebContainer": {"type": "durable-object", "storage": "sqlite"},
+    "JobsContainer": {"type": "durable-object", "storage": "sqlite"}
+  },
+
+  // Keep both containers warm and restart them after a host restart (src/index.ts `scheduled`).
+  "triggers": {"crons": ["* * * * *"]},
+
+  // Non-secret settings (public on-chain addresses and URLs).
+  "vars": {
+    "NODE_ENV": "production",
+    "DOGTAG_APP_MODE": "manual_verification",
+    "PUBLIC_BASE_URL": "https://verify.dogtagapp.com",
+    "AUTH_URL": "https://verify.dogtagapp.com",
+    "AUTH_TRUST_HOST": "1",
+    // Cloudflare passes the visitor's IP as CF-Connecting-IP, which the app reads first.
+    "TRUSTED_PROXY_HOPS": "0",
+    "ROAX_RPC_URL": "https://devrpc.roax.net",
+    "ROAX_CHAIN_ID": "135",
+    "ROAX_EXPLORER_URL": "https://explorer.roax.net",
+    "VET_ISSUER_FACTORY_ADDRESS": "0xfd65855d50c98485ddb07f6e477bab2bf6b84edd",
+    "ENTITY_REGISTRY_ADDRESS": "0x77c3c43db9cdbc0ddfa4a5872a52e78fce50ecc1",
+    "DOGTAG_SBT_ADDRESS": "0x576a0dfb11dea775446c24a9be2dd64b61ab2d88",
+    "VERIFICATION_REGISTRY_ADDRESS": "0x571970ec1c446e96127e51167f47a9813b6f707d",
+    "DELEGATION_REGISTRY_ADDRESS": "0xe60d2fc8ebaecfef945751dfdc32d393e2afd2d7",
+    "ADMIN_PORTAL_URL": "https://dogtag-admin.roax.net",
+    "DOGTAG_APP_URL_SCHEME": "dogtag",
+    // Off until this deployment's database is the only one being followed (see README step 6).
+    "JOBS_ENABLED": "false"
+  },
+
+  // Set once with `npx wrangler secret put <NAME>` - never committed. Deploy fails if missing.
+  "secrets": {
+    "required": ["MONGODB_URI", "AUTH_SECRET"]
+  }
+}
