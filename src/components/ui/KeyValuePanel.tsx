@@ -15,7 +15,7 @@ export interface KeyValuePanelProps {
  * design-system.md's KeyValuePanel. */
 export function KeyValuePanel({title, rows}: KeyValuePanelProps) {
   return (
-    <div className="glass rounded-card p-5">
+    <div className="card rounded-card p-5">
       {title && <h3 className="mb-3 text-section-title text-ink">{title}</h3>}
       <dl className="divide-y divide-border">
         {rows.map((row) => (

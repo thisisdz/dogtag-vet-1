@@ -81,7 +81,7 @@ export function PaymentActions({paymentId, status, viewUrl}: {paymentId: string;
   }
 
   return (
-    <div className="space-y-4 glass rounded-card p-5">
+    <div className="card space-y-4 rounded-card p-5">
       <h3 className="text-section-title text-ink">Actions</h3>
 
       <div className="flex flex-wrap gap-2">

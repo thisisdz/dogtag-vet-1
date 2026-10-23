@@ -355,39 +355,52 @@ export function SettingsForm({
         </FormField>
       </FormSection>
 
-      <FormSection
-        title="Receiving addresses"
-        helperText="One address per chain for accepting crypto payments. Leave blank to not accept that chain."
-      >
-        {ALL_CHAIN_KEYS.map((key) => (
-          <FormField key={key} label={paymentChainLabel(key)} htmlFor={`receiving-${key}`} error={fieldErrors[`receiving.${key}`]}>
-            <Input
-              id={`receiving-${key}`}
-              placeholder="0x..."
-              value={receiving[key]}
-              onChange={(e) => {
-                setReceiving((prev) => ({...prev, [key]: e.target.value.trim()}));
-                clearError(`receiving.${key}`);
-              }}
-            />
-          </FormField>
-        ))}
-      </FormSection>
-
-      <FormSection title="Chain RPC overrides" helperText="Leave blank to use the built-in public default.">
-        {ALL_CHAIN_KEYS.map((key) => (
-          <FormField key={key} label={paymentChainLabel(key)} htmlFor={`rpc-${key}`} error={fieldErrors[`rpcOverrides.${key}`]}>
-            <Input
-              id={`rpc-${key}`}
-              value={rpc[key]}
-              onChange={(e) => {
-                setRpc((p) => ({...p, [key]: e.target.value}));
-                clearError(`rpcOverrides.${key}`);
-              }}
-            />
-          </FormField>
-        ))}
-      </FormSection>
+      {/* Rarely changed - collapsed (progressive disclosure). Payments only exist on clinic
+          deployments; any saved receiving address is still re-sent on save. */}
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-body font-medium text-ink">
+          <span aria-hidden className="inline-block transition-transform group-open:rotate-90">&#9656;</span>
+          {manualVerification ? "Network (advanced)" : "Payments and network (advanced)"}
+        </summary>
+        <div className="mt-4 space-y-6">
+          {!manualVerification && (
+            <>
+              <FormSection
+                title="Receiving addresses"
+                helperText="One address per chain for accepting crypto payments. Leave blank to not accept that chain."
+              >
+                {ALL_CHAIN_KEYS.map((key) => (
+                  <FormField key={key} label={paymentChainLabel(key)} htmlFor={`receiving-${key}`} error={fieldErrors[`receiving.${key}`]}>
+                    <Input
+                      id={`receiving-${key}`}
+                      placeholder="0x..."
+                      value={receiving[key]}
+                      onChange={(e) => {
+                        setReceiving((prev) => ({...prev, [key]: e.target.value.trim()}));
+                        clearError(`receiving.${key}`);
+                      }}
+                    />
+                  </FormField>
+                ))}
+              </FormSection>
+            </>
+          )}
+          <FormSection title="Chain RPC overrides" helperText="Leave blank to use the built-in public default.">
+            {ALL_CHAIN_KEYS.map((key) => (
+              <FormField key={key} label={paymentChainLabel(key)} htmlFor={`rpc-${key}`} error={fieldErrors[`rpcOverrides.${key}`]}>
+                <Input
+                  id={`rpc-${key}`}
+                  value={rpc[key]}
+                  onChange={(e) => {
+                    setRpc((p) => ({...p, [key]: e.target.value}));
+                    clearError(`rpcOverrides.${key}`);
+                  }}
+                />
+              </FormField>
+            ))}
+          </FormSection>
+        </div>
+      </details>
 
       <div className="flex items-center justify-end gap-3">
         {!isOwner && <p className="text-caption text-ink-faint">Only an owner can change {brand.org} settings.</p>}

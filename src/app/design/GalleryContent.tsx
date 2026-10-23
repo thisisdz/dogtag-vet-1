@@ -13,6 +13,8 @@ import {FormField, FormSection} from "@/components/ui/FormSection";
 import {Button, Input, Select} from "@/components/ui/controls";
 import {QrSurface} from "@/components/ui/QrSurface";
 import {BrandLockup, BrandMark} from "@/components/brand/BrandLockup";
+import {Seal} from "@/components/brand/Seal";
+import {Stepper} from "@/components/ui/Stepper";
 
 const tones: StatusTone[] = ["ok", "warn", "danger", "info", "neutral"];
 
@@ -60,11 +62,22 @@ export function GalleryContent() {
     <div className="space-y-8 text-ink">
       <section>
         <h2 className="mb-3 text-section-title">Brand</h2>
-        <div className="glass space-y-6 rounded-card p-6">
+        <div className="card space-y-6 rounded-card p-6">
           <div className="flex flex-wrap items-center gap-6">
             <BrandLockup height={40} />
             <BrandMark size={56} />
+            {/* The signature element - only where a credential becomes real. */}
+            <Seal size={96} issuerName="Acme Vet" />
           </div>
+          <Stepper
+            steps={[
+              {key: "a", label: "Submitted"},
+              {key: "b", label: "In review"},
+              {key: "c", label: "Approved"},
+              {key: "d", label: "Issued"},
+            ]}
+            reachedKey="b"
+          />
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
             {swatches.map((s) => (
               <div key={s.name} className="text-caption">
@@ -77,7 +90,7 @@ export function GalleryContent() {
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="glass rounded-card p-4">
               <p className="text-caption font-medium uppercase tracking-wide text-ink-faint">01 Frost plate</p>
-              <p className="mt-1 text-body">Surfaces: cards, inputs, nav.</p>
+              <p className="mt-1 text-body">Functional layer only: sidebar, top bar, dialogs. Content sits on solid cards.</p>
             </div>
             <div className="glass-action rounded-card p-4">
               <p className="text-caption font-medium uppercase tracking-wide">02 Tag Red D</p>

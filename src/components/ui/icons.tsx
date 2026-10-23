@@ -31,3 +31,21 @@ export function EmptyCircleIcon({size = 16, className}: {size?: number; classNam
     </svg>
   );
 }
+
+/** Three-line menu glyph (the mobile nav button). */
+export function MenuIcon({size = 20, className}: {size?: number; className?: string}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden className={className}>
+      <path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Close (x) glyph. */
+export function CloseIcon({size = 20, className}: {size?: number; className?: string}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden className={className}>
+      <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}

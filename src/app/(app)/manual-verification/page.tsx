@@ -51,6 +51,22 @@ export default async function ManualVerificationPage({searchParams}: {searchPara
   const petName = new Map(pets.map((p) => [p.petId, p.name]));
   const now = Date.now();
 
+  const pet = (r: ManualVerificationRequestDoc) => (r.petId ? petName.get(r.petId) : r.dogtag?.petName) ?? "Unnamed pet";
+  const validUntil = (r: ManualVerificationRequestDoc) => (r.vaccination?.confirmedFields as {validUntil?: string} | undefined)?.validUntil;
+  const emptyAction = (
+    <>
+      <Link href="/manual-verification/new">
+        <Button>New request</Button>
+      </Link>
+      {status === "needs_me" && (
+        <Link href="/manual-verification?status=all">
+          <Button variant="secondary">Show all requests</Button>
+        </Link>
+      )}
+    </>
+  );
+  const emptyMessage = status === "needs_me" ? "Nothing is waiting on you." : "No requests match these filters.";
+
   return (
     <>
       <PageHeader
@@ -63,52 +79,88 @@ export default async function ManualVerificationPage({searchParams}: {searchPara
         }
       />
       <ManualVerificationFilters />
-      <DataTable
-        columns={[
-          {
-            key: "request",
-            header: "Request",
-            render: (r: ManualVerificationRequestDoc) => (
-              <Link href={`/manual-verification/${r.requestId}`} className="font-medium text-link hover:underline">
-                {manualVerificationKindLabel[r.kind]}
-              </Link>
-            ),
-          },
-          {
-            key: "pet",
-            header: "Pet",
-            render: (r: ManualVerificationRequestDoc) => (r.petId ? petName.get(r.petId) : r.dogtag?.petName) ?? "-",
-          },
-          {
-            key: "owner",
-            header: "Owner",
-            render: (r: ManualVerificationRequestDoc) => (
-              <span>
-                {r.requester.name}
-                <span className="block text-caption text-ink-muted">{r.requester.email}</span>
-              </span>
-            ),
-          },
-          {
-            key: "status",
-            header: "Status",
-            render: (r: ManualVerificationRequestDoc) => (
-              <StatusBadge tone={manualVerificationStatusTone[r.status]} label={manualVerificationStatusLabel[r.status]} />
-            ),
-          },
-          {key: "next", header: "Next step", render: (r: ManualVerificationRequestDoc) => nextStepLabel(r.kind, r.status)},
-          {key: "age", header: "Waiting", align: "right", mono: true, render: (r: ManualVerificationRequestDoc) => formatAge(r.submittedAt, now)},
-          {
-            key: "validUntil",
-            header: "Vaccine valid until",
-            render: (r: ManualVerificationRequestDoc) =>
-              (r.vaccination?.confirmedFields as {validUntil?: string} | undefined)?.validUntil ?? "-",
-          },
-        ]}
-        rows={requests}
-        getRowKey={(r) => r.requestId}
-        emptyMessage={status === "needs_me" ? "Nothing waiting on you." : "No requests match these filters."}
-      />
+
+      {/* Phones and tablets: one stacked row per request, no sideways scrolling. */}
+      <div className="lg:hidden">
+        {requests.length === 0 ? (
+          <div className="card rounded-card px-4 py-10 text-center text-body text-ink-muted">
+            {emptyMessage}
+            <div className="mt-3 flex flex-wrap justify-center gap-2">{emptyAction}</div>
+          </div>
+        ) : (
+          <ul className="card divide-y divide-border overflow-hidden rounded-card">
+            {requests.map((r) => (
+              <li key={r.requestId}>
+                <Link href={`/manual-verification/${r.requestId}`} className="block px-4 py-3 hover:bg-surface-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-emphasized font-semibold text-ink">{pet(r)}</p>
+                      <p className="truncate text-body text-ink-muted">
+                        {manualVerificationKindLabel[r.kind]} &middot; {r.requester.name}
+                      </p>
+                    </div>
+                    <StatusBadge tone={manualVerificationStatusTone[r.status]} label={manualVerificationStatusLabel[r.status]} />
+                  </div>
+                  <p className="mt-1.5 text-caption text-ink-faint">
+                    {nextStepLabel(r.kind, r.status)} &middot; waiting {formatAge(r.submittedAt, now)}
+                    {validUntil(r) ? ` · valid until ${validUntil(r)}` : ""}
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Desktop: the table, trimmed so it fits without scrolling. */}
+      <div className="hidden lg:block">
+        <DataTable
+          columns={[
+            {
+              key: "pet",
+              header: "Pet",
+              render: (r: ManualVerificationRequestDoc) => (
+                <Link href={`/manual-verification/${r.requestId}`} className="font-medium text-link hover:underline">
+                  {pet(r)}
+                  <span className="block text-caption font-normal text-ink-muted">{manualVerificationKindLabel[r.kind]}</span>
+                </Link>
+              ),
+            },
+            {
+              key: "owner",
+              header: "Owner",
+              render: (r: ManualVerificationRequestDoc) => (
+                <span>
+                  {r.requester.name}
+                  <span className="block text-caption text-ink-muted">{r.requester.email}</span>
+                </span>
+              ),
+            },
+            {
+              key: "status",
+              header: "Status",
+              render: (r: ManualVerificationRequestDoc) => (
+                <StatusBadge tone={manualVerificationStatusTone[r.status]} label={manualVerificationStatusLabel[r.status]} />
+              ),
+            },
+            {
+              key: "next",
+              header: "Next step",
+              render: (r: ManualVerificationRequestDoc) => (
+                <span>
+                  {nextStepLabel(r.kind, r.status)}
+                  {validUntil(r) && <span className="block text-caption text-ink-muted">Valid until {validUntil(r)}</span>}
+                </span>
+              ),
+            },
+            {key: "age", header: "Waiting", align: "right", mono: true, render: (r: ManualVerificationRequestDoc) => formatAge(r.submittedAt, now)},
+          ]}
+          rows={requests}
+          getRowKey={(r) => r.requestId}
+          emptyMessage={emptyMessage}
+          emptyAction={emptyAction}
+        />
+      </div>
     </>
   );
 }

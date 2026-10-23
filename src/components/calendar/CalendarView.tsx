@@ -349,7 +349,7 @@ export function CalendarView(props: CalendarViewProps) {
               <option value={UNASSIGNED_FILTER}>Unassigned</option>
             </Select>
           )}
-          <div className="glass inline-flex overflow-hidden rounded-control">
+          <div className="card inline-flex overflow-hidden rounded-control">
             <button
               type="button"
               onClick={() => navigate(anchorDate, "week")}

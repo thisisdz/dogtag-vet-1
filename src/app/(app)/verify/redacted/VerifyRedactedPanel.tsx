@@ -134,7 +134,7 @@ export function VerifyRedactedPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="glass rounded-card p-5">
+      <section className="card rounded-card p-5">
         <h3 className="mb-3 text-section-title text-ink">Document</h3>
         <Textarea
           rows={12}
@@ -167,7 +167,7 @@ export function VerifyRedactedPanel() {
       </section>
 
       {response && display && (
-        <section className="glass rounded-card p-5">
+        <section className="card rounded-card p-5">
           <div className="mb-3 flex items-center gap-3">
             <h3 className="text-section-title text-ink">Result</h3>
             <StatusBadge tone={display.tone} label={display.label} />

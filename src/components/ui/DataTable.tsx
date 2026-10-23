@@ -13,6 +13,8 @@ export interface DataTableProps<T> {
   rows: T[];
   getRowKey: (row: T) => string;
   emptyMessage?: string;
+  /** The next step offered on an empty table (writing.md: "Provide clear next steps on any blank screens"). */
+  emptyAction?: ReactNode;
   /** Optional full-width detail band under a given row - any falsy return (`null`, `undefined`,
    * `false` - the natural `cond && <X/>` shape) renders nothing for that row, so callers own which
    * row(s), if any, are "expanded" and can toggle it from any control in that row's own columns.
@@ -27,7 +29,7 @@ export interface DataTableProps<T> {
 /** Sticky header, mono columns for chain data, row hover, one-line empty state, right-aligned
  * numeric columns - design-system.md's DataTable. Pagination/infinite-scroll is left to callers
  * (a table this small never needs to own that concern generically). */
-export function DataTable<T>({columns, rows, getRowKey, emptyMessage, renderExpansion}: DataTableProps<T>) {
+export function DataTable<T>({columns, rows, getRowKey, emptyMessage, emptyAction, renderExpansion}: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto rounded-card border border-border bg-surface shadow-card">
       <table className="w-full border-collapse text-table-body">
@@ -48,8 +50,9 @@ export function DataTable<T>({columns, rows, getRowKey, emptyMessage, renderExpa
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-body text-ink-faint">
+              <td colSpan={columns.length} className="px-4 py-10 text-center text-body text-ink-muted">
                 {emptyMessage ?? "Nothing here yet."}
+                {emptyAction && <div className="mt-3 flex justify-center gap-2">{emptyAction}</div>}
               </td>
             </tr>
           ) : (

@@ -28,6 +28,6 @@ export function BrandLockup({height = 28, showProduct = true}: {height?: number;
 }
 
 /** The red-glass "D" mark on its own. */
-export function BrandMark({size = 40}: {size?: number}) {
-  return <Image src={mark} alt="DogTag" width={size} height={size} />;
+export function BrandMark({size = 40, priority = false}: {size?: number; priority?: boolean}) {
+  return <Image src={mark} alt="DogTag" width={size} height={size} priority={priority} />;
 }

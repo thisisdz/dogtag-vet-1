@@ -8,15 +8,35 @@ import {Button, Input, Select, Textarea} from "@/components/ui/controls";
 import {FormField, FormSection} from "@/components/ui/FormSection";
 import {KeyValuePanel} from "@/components/ui/KeyValuePanel";
 import {Timeline} from "@/components/ui/Timeline";
+import {Stepper} from "@/components/ui/Stepper";
+import {Seal} from "@/components/brand/Seal";
+import {StatusBadge} from "@/components/ui/StatusBadge";
 import {useSnackbar} from "@/components/ui/Snackbar";
 import {IssueRecordForm} from "@/components/pets/IssueRecordForm";
 import type {ManualVerificationRequestDoc} from "@/lib/models/ManualVerificationRequest";
 import type {PetDoc} from "@/lib/models/Pet";
 import type {RecordArtifactDoc} from "@/lib/models/RecordArtifact";
 import {MANUAL_VERIFICATION_REJECT_REASONS, type ManualVerificationRejectReason} from "@/lib/manualVerification/reasonCodes";
-import {eventLabel, nextStepLabel} from "@/lib/manualVerificationTone";
+import {eventLabel, manualVerificationStatusLabel, manualVerificationStatusTone, nextStepLabel} from "@/lib/manualVerificationTone";
 
 const REJECTABLE = new Set(["submitted", "in_review", "approved", "needs_attention"]);
+
+const STEPS = {
+  vaccination: [
+    {key: "submitted", label: "Submitted"},
+    {key: "in_review", label: "In review"},
+    {key: "approved", label: "Approved"},
+    {key: "issued", label: "Issued"},
+    {key: "claimed", label: "In the app"},
+  ],
+  dogtag: [
+    {key: "submitted", label: "Submitted"},
+    {key: "in_review", label: "In review"},
+    {key: "approved", label: "Approved"},
+    {key: "bound", label: "Tag bound"},
+    {key: "issued", label: "Issued"},
+  ],
+} as const;
 
 /**
  * The reviewer's working view for one request: the owner's document on the left, the decision on
@@ -78,21 +98,54 @@ export function RequestReview({
   const documentUrl = `/api/manual-verification/${request.requestId}/document`;
   const certificateInput = Object.fromEntries(Object.entries(certificate).filter(([, v]) => v.trim())) as typeof certificate;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const closed = request.status === "rejected" || request.status === "cancelled";
+  const finished = request.status === (request.kind === "vaccination" ? "claimed" : "issued");
+  const issued = request.status === "issued" || request.status === "claimed";
 
   return (
     <div className="space-y-6">
-      <Banner
-        tone="info"
-        title={request.status === "rejected" || request.status === "cancelled" ? "Closed" : `Next: ${nextStepLabel(request.kind, request.status)}`}
-      >
-        DogTag manual verification - the record is issued by DogTag from the owner&apos;s document, not by a treating vet.
-      </Banner>
+      {/* Where this request is, and what happens next. */}
+      <div className="card space-y-3 rounded-card p-5">
+        {closed ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge tone={manualVerificationStatusTone[request.status]} label={manualVerificationStatusLabel[request.status]} />
+            <p className="text-body text-ink-muted">This request is closed.</p>
+          </div>
+        ) : (
+          <>
+            <Stepper steps={[...STEPS[request.kind]]} reachedKey={request.status === "needs_attention" ? "approved" : request.status} />
+            <p className="text-body text-ink-muted">
+              {request.status === "needs_attention" ? (
+                <span className="font-medium text-warn">Needs attention - </span>
+              ) : null}
+              {finished ? "Done - the owner has it in the DogTag app." : <>Next: {nextStepLabel(request.kind, request.status)}</>}
+            </p>
+          </>
+        )}
+        <p className="text-caption text-ink-faint">
+          Issued by DogTag from the owner&apos;s document, not by a treating vet.
+        </p>
+      </div>
+
+      {issued && (
+        <div className="card flex flex-col items-center gap-4 rounded-card p-6 text-center sm:flex-row sm:text-left">
+          <Seal size={88} stamp />
+          <div>
+            <p className="text-section-title text-ink">{request.status === "claimed" ? "In the owner's DogTag app" : "Issued on chain"}</p>
+            <p className="mt-1 text-body text-ink-muted">
+              {request.status === "claimed"
+                ? "The owner opened the claim link and added it to their wallet."
+                : "The owner has been sent a claim link. You can re-send it below."}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left: the owner's evidence. */}
-        <div className="space-y-4">
+        {/* Left: the owner's evidence - stays in view while the record form scrolls. */}
+        <div className="space-y-4 lg:sticky lg:top-0 lg:self-start">
           {request.vaccination && (
-            <div className="glass overflow-hidden rounded-card">
+            <div className="card overflow-hidden rounded-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-2 text-caption text-ink-muted">
                 <span>Owner&apos;s document</span>
                 <a href={documentUrl} target="_blank" rel="noreferrer" className="text-link hover:underline">
@@ -135,7 +188,7 @@ export function RequestReview({
                 title="What the certificate says"
                 helperText="Transcribed from the owner's document. Kept with the request, not written on chain."
               >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="Vet clinic on the certificate" htmlFor="vetClinicName">
                     <Input id="vetClinicName" value={certificate.vetClinicName} onChange={(e) => setCertificate((c) => ({...c, vetClinicName: e.target.value}))} />
                   </FormField>
@@ -179,7 +232,7 @@ export function RequestReview({
                   <FormField label="Note to the owner" htmlFor="note" helperText={reasonCode === "other" ? "Required" : "Optional"}>
                     <Textarea id="note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
                   </FormField>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="danger" onClick={reject} disabled={busy || (reasonCode === "other" && !note.trim())}>
                       Reject request
                     </Button>
@@ -190,7 +243,7 @@ export function RequestReview({
                 </div>
               ) : (
                 <Button variant="secondary" onClick={() => setRejecting(true)}>
-                  Reject...
+                  Reject request…
                 </Button>
               )}
             </FormSection>
@@ -287,10 +340,10 @@ function ClaimPanel({request}: {request: ManualVerificationRequestDoc}) {
 function DocumentViewer({url, document}: {url: string; document: ReviewDocumentInfo | null}) {
   if (!document) return <div className="p-4 text-body text-ink-muted">The document is no longer stored.</div>;
   if (document.contentType === "application/pdf") {
-    return <iframe src={url} title="Owner's vaccination document" className="h-[40rem] w-full bg-surface" />;
+    return <iframe src={url} title="Owner's vaccination document" className="h-[28rem] w-full bg-surface lg:h-[calc(100dvh-14rem)]" />;
   }
   // eslint-disable-next-line @next/next/no-img-element -- an authenticated, uncached API response, not a static asset
-  return <img src={url} alt="Owner's vaccination document" className="max-h-[40rem] w-full bg-surface object-contain" />;
+  return <img src={url} alt="Owner's vaccination document" className="max-h-[28rem] w-full bg-surface object-contain lg:max-h-[calc(100dvh-14rem)]" />;
 }
 
 export interface ReviewDocumentInfo {

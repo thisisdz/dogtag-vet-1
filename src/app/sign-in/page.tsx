@@ -19,7 +19,7 @@ export default async function SignInPage({searchParams}: {searchParams: Promise<
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <BrandLockup height={36} />
-      <div className="glass w-full max-w-sm rounded-card p-6">
+      <div className="card w-full max-w-sm rounded-card p-6">
         <h1 className="mb-1 text-section-title text-ink">{manualVerification ? `Sign in to ${brand.product}` : "Staff sign in"}</h1>
         <p className="mb-6 text-body text-ink-muted">
           {manualVerification ? `Access the ${brand.product} workspace.` : <>Access this clinic&apos;s {brand.product} workspace.</>}

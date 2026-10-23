@@ -33,7 +33,7 @@ export default function LandingPage() {
               <Link href="/book" className="glass-action rounded-control px-5 py-2.5 text-body font-medium">
                 Book an appointment
               </Link>
-              <Link href="/sign-in" className="glass rounded-control px-5 py-2.5 text-body font-medium text-ink hover:bg-surface">
+              <Link href="/sign-in" className="card rounded-control px-5 py-2.5 text-body font-medium text-ink hover:bg-surface-2">
                 Staff sign in
               </Link>
             </div>

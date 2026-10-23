@@ -48,7 +48,7 @@ export default async function PublicPaymentPage({
         <StatusBadge tone={paymentStatusTone[payment.status]} label={paymentStatusLabel[payment.status]} />
       </header>
 
-      <div className="glass rounded-card p-5">
+      <div className="card rounded-card p-5">
         <p className="text-hero text-ink">
           {payment.total} <span className="text-body text-ink-muted">{payment.currency}</span>
         </p>

@@ -47,7 +47,7 @@ const config: Config = {
         "table-body": ["13px", {lineHeight: "18px"}],
         body: ["14px", {lineHeight: "20px"}],
         emphasized: ["16px", {lineHeight: "22px"}],
-        "section-title": ["20px", {lineHeight: "26px", fontWeight: "600"}],
+        "section-title": ["18px", {lineHeight: "24px", fontWeight: "600"}],
         "page-title": ["24px", {lineHeight: "30px", fontWeight: "700"}],
         hero: ["32px", {lineHeight: "38px", fontWeight: "700"}],
       },

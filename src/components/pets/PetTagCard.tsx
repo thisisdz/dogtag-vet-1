@@ -49,7 +49,7 @@ export function PetTagCard({
 
   if (!hasTag) {
     return (
-      <section className="glass rounded-card p-5">
+      <section className="card rounded-card p-5">
         <div className="mb-1 flex items-center justify-between">
           <h3 className="text-section-title text-ink">DogTag</h3>
           <StatusBadge tone="neutral" label="No tag issued" />
@@ -71,7 +71,7 @@ export function PetTagCard({
   }
 
   return (
-    <section className="glass rounded-card p-5">
+    <section className="card rounded-card p-5">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="text-section-title text-ink">DogTag</h3>
         <div className="flex items-center gap-2">

@@ -11,7 +11,7 @@ export interface FormSectionProps {
  * inside a form; pair with FormField below for inline validation under each input. */
 export function FormSection({title, helperText, children}: FormSectionProps) {
   return (
-    <section className="glass rounded-card p-5">
+    <section className="card rounded-card p-5">
       <div className="mb-4">
         <h3 className="text-section-title text-ink">{title}</h3>
         {helperText && <p className="mt-1 text-body text-ink-muted">{helperText}</p>}

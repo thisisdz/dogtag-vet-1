@@ -41,7 +41,7 @@ export function Timeline({entries, timeZone, emptyMessage}: TimelineProps) {
             {entry.actor && <AddressChip address={entry.actor} chain={entry.chain} label="actor" />}
             {entry.txHash && <HashCell value={entry.txHash} chain={entry.chain} kind="tx" label="tx" />}
           </div>
-          {entry.detail && <p className="mt-1 text-body text-ink-muted">{entry.detail}</p>}
+          {entry.detail && <p className="mt-1 break-words text-body text-ink-muted [overflow-wrap:anywhere]">{entry.detail}</p>}
         </li>
       ))}
     </ol>

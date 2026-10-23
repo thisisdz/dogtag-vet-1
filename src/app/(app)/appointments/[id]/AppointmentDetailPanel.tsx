@@ -383,7 +383,7 @@ function ProvenanceBox({appointment, onSaved}: {appointment: AppointmentDoc; onS
   if (!identity) return null;
 
   return (
-    <section data-testid="provenance-box" className="glass rounded-card p-5">
+    <section data-testid="provenance-box" className="card rounded-card p-5">
       <h3 className="mb-4 text-section-title text-ink">Provenance</h3>
       {/* Review finding 4: the booking itself durably succeeded, but its post-insert follow-up
        * writes (Q3's pet import/reuse, Q1's wallet auto-attach - lib/booking/postBooking.ts) did

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {useBrand} from "@/components/BrandProvider";
 import {CheckCircleIcon, EmptyCircleIcon} from "@/components/ui/icons";
+import {Seal} from "@/components/brand/Seal";
 import {ISSUER_READY_MESSAGE, issuerReadiness, type IssuerReadinessInput} from "@/lib/issuerReadiness";
 
 /**
@@ -17,11 +18,14 @@ export function IssuerReadinessCard({current, saved}: {current: IssuerReadinessI
 
   if (live.ready && persisted.ready) {
     return (
-      <div className="flex items-start gap-3 rounded-card border border-border bg-ok-soft px-4 py-3 text-ok" role="status">
-        <CheckCircleIcon size={20} className="mt-px shrink-0" />
+      <div className="flex items-center gap-4 rounded-card border border-border bg-ok-soft px-4 py-3" role="status">
+        <Seal size={64} issuerName={current.name} />
         <div>
-          <p className="text-body font-semibold">{ISSUER_READY_MESSAGE}</p>
-          <p className="text-caption">
+          <p className="flex items-center gap-1.5 text-body font-semibold text-ok">
+            <CheckCircleIcon size={18} className="shrink-0" />
+            {ISSUER_READY_MESSAGE}
+          </p>
+          <p className="mt-0.5 text-caption text-ink-muted">
             Credentials will be signed as {current.name?.trim()} ({current.domain?.trim()}).
           </p>
         </div>

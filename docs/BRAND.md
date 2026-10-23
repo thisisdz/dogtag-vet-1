@@ -1,4 +1,4 @@
-# DogTag Vet brand: liquid glass
+# DogTag brand: liquid glass (DogTag Vet and DogTag Verify)
 
 This app follows the DogTag "liquid glass" brand kit (the DogTag Brand Before/After deck). This file
 is this repo's brand reference. `protocol/design/design-system.md` is vendored from
@@ -23,19 +23,48 @@ All values live in `src/app/globals.css`; nothing else hardcodes a hex color, wi
 exceptions that cannot read CSS: the invoice PDF (`src/lib/payments/pdf.ts`) and the QR encoder
 (`src/components/ui/QrSurface.tsx`). Update those by hand when a token changes.
 
-## The three glass layers
+## Two layers: content and controls
 
-Each layer of the mark becomes a layer of the interface (utilities in `globals.css`):
+Apple's materials guidance (the `apple-design` review, 2026-10-23) splits every screen in two, and
+this app follows it:
 
-1. **Frost plate → surfaces** (`.glass`): cards, the sidebar and top bar, modals, secondary
-   buttons. Frosted white over the porcelain ground and its soft coral/red glow. Falls back to a
-   solid plate where `backdrop-filter` is unsupported.
-2. **Tag Red D → action** (`.glass-action`): primary buttons, the active nav item, active toggles.
-   Red glass (Coral → Tag Red gradient) with a bright top rim.
+- **Content layer → solid cards** (`.card`): everything people read or fill in - form sections,
+  tables, panels, the sign-in and claim cards, secondary buttons. White on the porcelain ground with
+  a hairline border and a soft shadow.
+- **Functional layer → glass** (`.glass`): only the sidebar, the top bar, the landing header, the
+  sticky form action bar, dialogs and the snackbar. Glass on content made nothing stand out; do not
+  add it back to cards.
+
+The three layers of the mark still map onto these (utilities in `globals.css`):
+
+1. **Frost plate → the functional layer** (`.glass`). Frosted white over the porcelain ground and
+   its soft coral/red glow. Becomes an opaque plate under Reduce Transparency / Increase Contrast
+   and where `backdrop-filter` is unsupported.
+2. **Tag Red D → action** (`.glass-action`): the ONE primary button per view, and active toggles.
+   Red glass (Coral → Tag Red gradient) with a bright top rim. The active nav item is ink on Blush
+   Frost with a Tag Red marker, not a red fill - red is saved for the primary action and status.
 3. **Bone glyph → detail** (`.glass-chip`, `text-on-brand`): white glass and labels sitting on red.
 
 Dense surfaces stay solid for legibility and scroll performance: data tables and form inputs use
 `bg-surface`, not glass.
+
+## The seal (signature element)
+
+`<Seal>` (`src/components/brand/Seal.tsx`) is the one thing this product is remembered by: a round
+stamped mark like a dog tag, the red D ringed by "Verified by DogTag" (verification desk) or "Issued
+by <clinic>" (clinic deployments). It appears only where a credential becomes real - the owner's
+claim page, a request once issued, and the settings readiness state - and plays its single 180ms
+stamp-in there. Never use it as decoration or repeat it on other screens.
+
+## Accessibility floor
+
+- Text contrast ≥ 4.5:1 on every surface it sits on (enforced by `tests/unit/brandContrast.test.ts`).
+  `--ink-faint` is #706765 (4.77:1 on porcelain); the old #958A87 (2.9:1) failed.
+- Keyboard focus: a solid 2px `--focus` (#A82D24) outline, offset 2px, on every focusable element.
+- `prefers-reduced-transparency`, `prefers-contrast: more` and `prefers-reduced-motion` are honoured
+  in `globals.css`.
+- Below `lg` the sidebar becomes a drawer (`MobileNav`); inputs are 16px on phones and buttons
+  44px tall, so nothing zooms or is too small to tap.
 
 ## Rules
 
@@ -43,8 +72,9 @@ Dense surfaces stay solid for legibility and scroll performance: data tables and
   (danger buttons, banners, badges, snackbars, field errors) renders `AlertIcon`
   (`src/components/ui/icons.tsx`).
 - **Light only.** The kit defines no dark theme, so the app has none.
-- **Type:** headings (`h1`–`h3`, `font-display`) use Nunito, the rounded face closest to the
-  wordmark; body copy uses Inter; ids and hashes use JetBrains Mono.
+- **Type:** page titles and hero text (`h1`) use Nunito, the rounded face closest to the
+  wordmark; section headings and body copy use Inter, so sections sit a clear step below the page
+  title; ids and hashes use JetBrains Mono.
 - **Shape:** controls `rounded-control` (10px), cards `rounded-card` (16px).
 
 ## Logo

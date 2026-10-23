@@ -1,4 +1,5 @@
 import {BrandLockup} from "@/components/brand/BrandLockup";
+import {Seal} from "@/components/brand/Seal";
 import {QrSurface} from "@/components/ui/QrSurface";
 import {connectToDatabase} from "@/lib/db";
 import {getServerEnv} from "@/lib/env";
@@ -28,15 +29,18 @@ export default async function ClaimPage({params}: {params: Promise<{token: strin
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-10">
-      <BrandLockup height={32} />
-      <div className="glass w-full max-w-md rounded-card p-6 text-center">
+      <BrandLockup height={28} showProduct={false} />
+      <div className="card w-full max-w-md rounded-card px-6 pb-6 pt-8 text-center">
         {state === "usable" ? (
           <>
-            <h1 className="text-section-title text-ink">{what} is ready</h1>
+            <div className="mb-5 flex justify-center">
+              <Seal size={112} stamp />
+            </div>
+            <h1 className="text-page-title text-ink">{what} is ready</h1>
             <p className="mt-2 text-body text-ink-muted">Add it to the DogTag app on your phone.</p>
             <a
               href={`${env.DOGTAG_APP_URL_SCHEME}://claim/${token}`}
-              className="glass-action mt-6 inline-block w-full rounded-control px-5 py-3 text-emphasized font-semibold"
+              className="glass-action mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-control px-5 py-3 text-emphasized font-semibold"
             >
               Open in the DogTag app
             </a>
@@ -61,7 +65,7 @@ export default async function ClaimPage({params}: {params: Promise<{token: strin
               <QrSurface data={claimUrl(token)} size={200} />
             </div>
             {request?.claim && (
-              <p className="mt-4 text-caption text-ink-faint">
+              <p className="mt-4 text-caption text-ink-muted">
                 This link works until {new Date(request.claim.exp * 1000).toLocaleDateString("en-US", {dateStyle: "long", timeZone: "UTC"})}.
               </p>
             )}

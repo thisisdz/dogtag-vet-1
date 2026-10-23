@@ -42,13 +42,14 @@ function findActiveHref(pathname: string | null, groups: typeof navGroups): stri
   return best;
 }
 
-export function Sidebar({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMode}) {
+/** Logo plus the nav groups - shared by the desktop sidebar and the mobile drawer (MobileNav). */
+export function SidebarNav({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMode}) {
   const pathname = usePathname();
   const groups = visibleGroups(role, mode);
   const activeHref = findActiveHref(pathname, groups);
 
   return (
-    <nav className="glass flex h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-y-0 border-l-0 px-3 py-5">
+    <>
       <Link href="/dashboard" className="px-2" aria-label="DogTag - home">
         <BrandLockup height={26} />
       </Link>
@@ -62,11 +63,15 @@ export function Sidebar({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMo
               const active = item.href === activeHref;
               return (
                 <li key={item.href}>
+                  {/* Active: ink on Blush Frost with a Tag Red marker - red fill is saved for each
+                      view's one primary action (docs/BRAND.md). */}
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`block rounded-control px-2.5 py-1.5 text-body transition-colors ${
-                      active ? "glass-action font-medium" : "text-ink-muted hover:bg-brand-soft hover:text-ink"
+                    className={`relative block rounded-control px-2.5 py-2 text-body transition-colors lg:py-1.5 ${
+                      active
+                        ? "bg-brand-soft font-medium text-ink before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-brand"
+                        : "text-ink-muted hover:bg-brand-soft hover:text-ink"
                     }`}
                   >
                     {item.label}
@@ -77,6 +82,15 @@ export function Sidebar({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMo
           </ul>
         </div>
       ))}
+    </>
+  );
+}
+
+/** The desktop sidebar (lg and up); below that the same nav lives in MobileNav's drawer. */
+export function Sidebar({role, mode = "clinic"}: {role?: StaffRole; mode?: AppMode}) {
+  return (
+    <nav aria-label="Main" className="glass hidden h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-y-0 border-l-0 px-3 py-5 lg:flex">
+      <SidebarNav role={role} mode={mode} />
     </nav>
   );
 }

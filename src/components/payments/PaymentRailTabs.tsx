@@ -17,7 +17,7 @@ export function PaymentRailTabs({rails, dueAt}: {rails: CryptoRail[]; dueAt?: nu
   const rail = rails[active] ?? rails[0]!;
 
   return (
-    <div className="glass rounded-card p-5">
+    <div className="card rounded-card p-5">
       <div className="mb-4 flex flex-wrap gap-2">
         {rails.map((r, i) => (
           <button

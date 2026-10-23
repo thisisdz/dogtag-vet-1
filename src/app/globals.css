@@ -8,8 +8,11 @@
  * this file (src/lib/payments/pdf.ts and QrSurface.tsx are the documented exceptions: PDFKit and
  * the QR encoder cannot read CSS). Light only: the brand kit defines no dark theme.
  *
- * The three layers of the mark map onto the interface:
- *   01 Frost plate -> surfaces  (.glass: cards, nav, modals - frosted white over the porcelain ground)
+ * Two layers, as Apple's materials guidance draws them (docs/BRAND.md):
+ *   content    -> solid white cards (.card) on the porcelain ground
+ *   functional -> frosted glass (.glass) ONLY on the sidebar, top bar, dialogs and snackbar
+ * and the three layers of the mark still map onto them:
+ *   01 Frost plate -> the functional layer (.glass)
  *   02 Tag Red D   -> action    (.glass-action: primary buttons, toggles, active tabs, icon buttons)
  *   03 Bone glyph  -> detail    (.glass-chip / --on-brand: white glass and labels sitting on red)
  */
@@ -24,7 +27,8 @@
   --border-strong: rgba(30, 26, 25, 0.22);
   --ink: #1e1a19;
   --ink-muted: #625855;
-  --ink-faint: #958a87;
+  /* Tertiary text: 4.77:1 on porcelain, 5.50:1 on white (was #958a87, 2.9:1 - failed AA). */
+  --ink-faint: #706765;
 
   /* Brand - Tag Red for every action, active state and icon; Coral only in gradients/highlights
      (white on Coral is ~3.6:1, below AA for text); Blush Frost for soft fills. */
@@ -35,13 +39,14 @@
   --on-brand: #ffffff;
   /* Red text on porcelain needs a darker red than Tag Red to stay comfortably above AA. */
   --link: #a82d24;
-  --focus: rgba(206, 55, 45, 0.35);
+  /* Keyboard focus ring: solid, 5.94:1 on porcelain (a translucent ring measured ~1.6:1). */
+  --focus: #a82d24;
 
   /* Status palette, warm-tuned to sit on porcelain. Danger is Ember - close to Tag Red, so a danger
      surface must always carry an alert icon too (never color alone). */
-  --ok: #2b7a4b;
+  --ok: #2a7649;
   --ok-soft: #e2f0e6;
-  --warn: #9a6200;
+  --warn: #945e00;
   --warn-soft: #f8ecd2;
   --danger: #a4241c;
   --danger-soft: #f6dad5;
@@ -52,6 +57,12 @@
 
   /* QR codes always print on a white quiet zone. */
   --qr-paper: #ffffff;
+
+  /* Behind the mobile nav drawer. */
+  --scrim: rgba(30, 26, 25, 0.32);
+
+  /* Content cards */
+  --card-shadow: 0 1px 2px rgba(30, 26, 25, 0.05), 0 4px 16px rgba(30, 26, 25, 0.04);
 
   /* Glass */
   --glass-surface: rgba(255, 255, 255, 0.64);
@@ -78,11 +89,16 @@ body {
   color: var(--ink);
 }
 
-/* Headings use the wordmark's rounded face; body copy stays on Inter. */
-h1,
-h2,
-h3 {
+/* Only page titles and hero text use the wordmark's rounded face; section headings stay on Inter so
+   they sit a clear step below the page title. */
+h1 {
   font-family: var(--font-nunito), var(--font-inter), system-ui, sans-serif;
+}
+
+/* One visible focus ring everywhere, for keyboard users only. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 ::selection {
@@ -91,8 +107,15 @@ h3 {
 }
 
 @layer components {
-  /* 01 Frost plate. Blur is reserved for the shell, cards, modals and the snackbar - dense tables
-     and form inputs stay solid for legibility and scroll performance. */
+  /* Content layer: a solid white card. Everything people read and fill in sits on one of these. */
+  .card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--card-shadow);
+  }
+
+  /* 01 Frost plate - the functional layer only (sidebar, top bar, dialogs, snackbar). Never on
+     content: glass on everything is what made nothing stand out. */
   .glass {
     background-color: var(--glass-surface);
     border: 1px solid var(--glass-border);
@@ -134,4 +157,48 @@ h3 {
    columns) - amounts and ids must align in a column. */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Reduce Transparency / Increase Contrast: the glass becomes an opaque plate, borders firm up, and
+   tertiary text steps up to the secondary tone. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass {
+    background-color: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --border: var(--border-strong);
+    --ink-faint: var(--ink-muted);
+  }
+  .card,
+  .glass {
+    border-color: var(--border-strong);
+  }
+}
+
+/* The seal's one stamp moment (src/components/brand/Seal.tsx). */
+@keyframes seal-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.seal-stamp {
+  animation: seal-stamp 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

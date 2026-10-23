@@ -180,7 +180,7 @@ export function BookingWizard({
 
   if (step === "details" && selectedSlot && selectedService) {
     return (
-      <div className="space-y-4 glass rounded-card p-5">
+      <div className="card space-y-4 rounded-card p-5">
         <div>
           <p className="text-caption uppercase tracking-wide text-ink-muted">Confirming</p>
           <p className="mt-1 text-emphasized text-ink">{selectedService.name}</p>
@@ -219,7 +219,7 @@ export function BookingWizard({
   }
 
   return (
-    <div className="space-y-4 glass rounded-card p-5">
+    <div className="card space-y-4 rounded-card p-5">
       <FormField label="Service" htmlFor="book-service">
         <Select
           id="book-service"
