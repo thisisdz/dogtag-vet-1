@@ -2,7 +2,7 @@
 
 2026-10-23 · Shareable copy: https://claude.ai/artifact/AJZeP3oRyUHXuTkNffrosF
 
-All 10 test runs passed: 47 of 47 steps. One medium-severity gap turned up while writing the report: the owner's claim email waits until someone reopens the request page. Runs used a local test database with the on-chain signing step simulated; live signing, real email delivery and the mobile app hand-off still need a live check.
+All 10 test runs passed: 47 of 47 steps. One medium-severity gap turned up while writing the report (the owner's claim email waited until someone reopened the request page); it was fixed on 2026-10-24 in commit cd767b0, ready to deploy. Runs used a local test database with the on-chain signing step simulated; live signing, real email delivery and the mobile app hand-off still need a live check.
 
 ## Results at a glance
 
@@ -36,7 +36,7 @@ Each run drove the app's real staff routes, services, data models and a real Mon
 | --- | --- | --- | --- |
 | 1 | Low | A file over 5 MB is refused with the generic `invalid_input` code (HTTP 400), unlike the other document problems, which have their own codes. | Return `document_too_large` with HTTP 413. |
 | 2 | Low | When document storage fills, new requests get `storage_full` (HTTP 503) but nothing tells the reviewer. | Show storage use in Settings; warn at about 80%. |
-| 3 | Medium | A request moves to Issued, and the claim email goes out, only when someone opens that request's page; neither the background worker nor the record's confirmation does it. | Have the background worker sync approved requests every minute, or sync right after the record confirms. |
+| 3 | Medium (fixed) | A request moves to Issued, and the claim email goes out, only when someone opens that request's page; neither the background worker nor the record's confirmation does it. | Fixed (cd767b0): the record's confirmation now updates the request and emails the owner straight away, and the background worker checks waiting requests every minute, including ones whose reviewer closed the tab mid-signing. Covered by 6 new tests. |
 
 Confirmed as designed: records never claim a treating vet; claim codes are stored only as a fingerprint; opening a claim link or page changes nothing; plain staff and signed-out visitors are refused; racing syncs send one email; a failed issuance goes to "needs attention" and recovers; expired, replaced and revoked links are refused.
 
@@ -46,7 +46,7 @@ Confirmed as designed: records never claim a treating vet; claim codes are store
 - [ ] Real email delivery to Gmail and Outlook inboxes; needs the dogtagapp.com DKIM record.
 - [ ] The DogTag app opening `/claim` links (Ken).
 - [ ] Owner-submitted requests from the app (signed API and "Get my DogTag" not built yet).
-- [ ] Leaving the page right after signing: does the owner's email still go out (finding 3)?
+- [ ] Leaving the page right after signing: after deploying the fix, sign, close the tab straight away, and confirm the owner's email arrives within about 6 minutes (finding 3).
 
 ## Step log
 
