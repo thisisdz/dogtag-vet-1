@@ -2,7 +2,7 @@
 
 2026-10-23 · Shareable copy: https://claude.ai/artifact/AJZeP3oRyUHXuTkNffrosF
 
-All 10 test runs passed: 47 of 47 steps. One medium-severity gap turned up while writing the report (the owner's claim email waited until someone reopened the request page); it was fixed on 2026-10-24 in commit cd767b0, ready to deploy. Runs used a local test database with the on-chain signing step simulated; live signing, real email delivery and the mobile app hand-off still need a live check.
+All 10 test runs passed: 47 of 47 steps. One medium-severity gap turned up while writing the report (the owner's claim email waited until someone reopened the request page); it was fixed in commit cd767b0 and deployed to verify.dogtagapp.com on 2026-10-24. Runs used a local test database with the on-chain signing step simulated; live signing, real email delivery and the mobile app hand-off still need a live check.
 
 ## Results at a glance
 
