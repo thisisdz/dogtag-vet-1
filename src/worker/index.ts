@@ -26,7 +26,11 @@
  *    matching transfers to open invoices, marks them paid, fires receipt/notice emails, and sweeps
  *    past-due payments to `expired`.
  *
- * A fourth, non-polling piece (WP4.17 B10): `startHealthServer` (`./health.ts`) opens
+ * 4. The manual verification sweep (`runManualVerificationLoop`, `src/lib/manualVerification/sweep.ts`):
+ *    every MANUAL_VERIFICATION_SYNC_MS, requests waiting on the chain move to `issued` (emailing the
+ *    owner their claim link) or `needs_attention` even when nobody reopens them.
+ *
+ * A non-polling piece (WP4.17 B10): `startHealthServer` (`./health.ts`) opens
  * `GET /healthz` and `GET /livez` on `WORKER_HEALTH_PORT` so Kubernetes (or anything else) can
  * probe this process - see that file's doc comment, and `src/lib/health/workerHealth.ts`'s, for
  * the readiness/liveness split and what each loop's "last poll" actually measures.
@@ -51,6 +55,7 @@ import {
 } from "./health";
 import {recoverStuckDelegationSessions} from "@/lib/delegation/bootRecovery";
 import {runPaymentWatcherOnce} from "@/lib/payments/watcher";
+import {sweepManualVerification} from "@/lib/manualVerification/sweep";
 import {roaxChainId} from "@/lib/paymentChainRead";
 import type {Log} from "viem";
 
@@ -210,6 +215,24 @@ async function runPaymentWatcherLoop(pollMs: number, pollState: WorkerPollState)
   }
 }
 
+/** The manual verification sweep's own loop - independent like the other two, so a slow chain
+ * read here never stalls the activity follower or the payment watcher. Quiet when idle. */
+async function runManualVerificationLoop(pollMs: number): Promise<void> {
+  while (!shutdown.signal.aborted) {
+    try {
+      const result = await sweepManualVerification();
+      if (result.issued || result.needsAttention || result.failed) {
+        console.log(
+          `[manual-verification] sweep: ${result.issued} issued, ${result.needsAttention} need attention, ${result.failed} failed (of ${result.checked} waiting)`,
+        );
+      }
+    } catch (err) {
+      console.error("[manual-verification] sweep failed", err);
+    }
+    await sleepUnlessShuttingDown(pollMs);
+  }
+}
+
 async function runActivityFollowerLoop(pollMs: number, pollState: WorkerPollState): Promise<void> {
   while (!shutdown.signal.aborted) {
     try {
@@ -294,12 +317,14 @@ async function main() {
 
   console.log(`[worker] starting chain-activity follower (poll every ${env.ACTIVITY_POLL_MS}ms)`);
   console.log(`[worker] starting payment watcher (poll every ${env.PAYMENT_WATCHER_POLL_MS}ms)`);
+  console.log(`[worker] starting manual verification sweep (every ${env.MANUAL_VERIFICATION_SYNC_MS}ms)`);
   await Promise.all([
     runActivityFollowerLoop(env.ACTIVITY_POLL_MS, pollState),
     runPaymentWatcherLoop(env.PAYMENT_WATCHER_POLL_MS, pollState),
+    runManualVerificationLoop(env.MANUAL_VERIFICATION_SYNC_MS),
   ]);
 
-  // Only reached after a shutdown signal - both loops have finished their last iteration.
+  // Only reached after a shutdown signal - every loop has finished its last iteration.
   healthServer.close();
   await mongoose.disconnect();
   console.log("[worker] stopped");

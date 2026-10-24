@@ -128,6 +128,9 @@ const envSchema = z.object({
   // block instead of paying for a genesis-to-tip scan it doesn't need.
   ACTIVITY_START_BLOCK: z.coerce.number().default(0),
   ACTIVITY_POLL_MS: z.coerce.number().default(15_000),
+  /** How often the worker sweeps manual verification requests waiting on the chain (approved /
+   * needs attention) so a confirmed record emails its owner even if nobody reopens the request. */
+  MANUAL_VERIFICATION_SYNC_MS: z.coerce.number().int().positive().default(60_000),
   ACTIVITY_CHUNK_BLOCKS: z.coerce.number().default(2000),
 
   // Worker health server (WP4.17 B10 - src/worker/health.ts). WORKER_HEALTH_PORT default 8091

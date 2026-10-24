@@ -5,6 +5,17 @@ import {getClinicSettings} from "@/lib/models/ClinicSettings";
 import {requireEnv} from "@/lib/env";
 import {markRecordError, mongoReconcileRecordDeps, reconcileAnchoredRecord, RECORD_TX_REVERTED_MESSAGE} from "@/lib/records/reconcile";
 import {badRequest, notFound, requireVetSession} from "@/lib/staffApi";
+import {syncRequestForRecord} from "@/lib/manualVerification/sync";
+
+/** Best effort: a manual verification request behind this record moves on (and its owner is
+ * emailed) now rather than at the next worker sweep. Never fails the confirm itself. */
+async function syncLinkedRequest(recordId: string): Promise<void> {
+  try {
+    await syncRequestForRecord(recordId);
+  } catch (err) {
+    console.error(`[records] manual verification sync after confirm failed for ${recordId}`, err);
+  }
+}
 
 /**
  * `POST /api/records/:id/confirm` - the plan's own non-negotiable, verbatim: "confirm is
@@ -59,6 +70,7 @@ export async function POST(_request: Request, {params}: {params: Promise<{id: st
   );
 
   if (outcome.reconciled) {
+    await syncLinkedRequest(recordId);
     return NextResponse.json({recordId, status: "active", root: record.root, contract: outcome.contract});
   }
 
@@ -83,6 +95,7 @@ export async function POST(_request: Request, {params}: {params: Promise<{id: st
   // disagrees; it stays exactly as retryable as it was.
   if (record.status === "issuing") {
     await markRecordError(recordId, "verify");
+    await syncLinkedRequest(recordId);
   }
   return badRequest("On-chain confirmation did not match. The record was not marked active.");
 }

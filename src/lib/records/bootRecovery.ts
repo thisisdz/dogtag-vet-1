@@ -15,11 +15,19 @@ import {isRecordStale, markRecordError, mongoReconcileRecordDeps, reconcileAncho
  * anchoring metadata); a CONFIRMED revert -> back to `draft` (no `redraft`; the leaves/root are
  * already computed and already verified, so the identical row can retry `issueRecord` immediately);
  * neither (still genuinely unreadable, or a receipt that never arrives) -> `error`/`interrupted`.
+ *
+ * `recordIds` limits the pass to those records - the manual verification sweep
+ * (`lib/manualVerification/sweep.ts`) runs it every minute for its own records only, so vet-issued
+ * records keep today's boot-only recovery.
  */
-export async function recoverInterruptedRecords(): Promise<void> {
+export async function recoverInterruptedRecords(opts: {recordIds?: string[]} = {}): Promise<void> {
+  if (opts.recordIds && opts.recordIds.length === 0) return;
   const env = getServerEnv();
   const now = Date.now();
-  const issuingRecords = await RecordArtifact.find({status: "issuing"}).lean<RecordArtifactDoc[]>();
+  const issuingRecords = await RecordArtifact.find({
+    status: "issuing",
+    ...(opts.recordIds ? {recordId: {$in: opts.recordIds}} : {}),
+  }).lean<RecordArtifactDoc[]>();
   // Reuses MINT_SESSION_STALE_MS rather than a second, record-specific setting: the question this
   // threshold answers ("how long can a submitted-but-unconfirmed on-chain write sit before this
   // process assumes whatever sent it is gone") is identical for a tag's issueTag and a record's

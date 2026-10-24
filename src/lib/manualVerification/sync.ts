@@ -13,6 +13,14 @@ import {issueAndSendClaim} from "@/lib/manualVerification/claims";
  * request `issued`, and the owner is emailed a claim link; `error` -> `needs_attention`.
  * (DogTag syncing is added with the DogTag flow.)
  */
+/** Syncs the manual verification request (if any) behind a record, right after that record's
+ * on-chain confirmation changes - so the owner's claim email goes out without anyone reopening the
+ * request. A vet-issued record has no request and this is a no-op. */
+export async function syncRequestForRecord(recordId: string): Promise<void> {
+  const request = await ManualVerificationRequest.findOne({"vaccination.recordId": recordId}).lean<ManualVerificationRequestDoc>();
+  if (request) await syncRequest(request);
+}
+
 export async function syncRequest(request: ManualVerificationRequestDoc): Promise<ManualVerificationRequestDoc> {
   if (request.kind === "vaccination") return syncVaccination(request);
   return request;
